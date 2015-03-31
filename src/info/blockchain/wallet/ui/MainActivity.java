@@ -2,40 +2,43 @@ package info.blockchain.wallet.ui;
 
 import java.security.Security;
 //import java.security.Provider;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
+//import android.app.ActionBar;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.app.ActionBar.Tab;
-import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTabHost;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
 //import android.view.Menu;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.Gravity;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -43,12 +46,16 @@ import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.os.StrictMode;
-import android.os.Build.VERSION;
 //import android.util.Log;
 
-import info.blockchain.wallet.ui.SendFragment;
+import info.blockchain.wallet.ui.Adapters.NavDrawerListAdapter;
+import info.blockchain.wallet.ui.Adapters.TabsPagerAdapter;
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.R;
 //import piuk.blockchain.android.SharedCoin;
+import piuk.blockchain.android.SuccessCallback;
 import piuk.blockchain.android.WalletApplication;
 
 import net.sourceforge.zbar.Symbol;
@@ -57,7 +64,7 @@ import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 
 @SuppressLint("NewApi")
-public class MainActivity extends FragmentActivity implements ActionBar.TabListener, SendFragment.OnCompleteListener {
+public class MainActivity extends ActionBarActivity implements ActionBar.TabListener, SendFragment.OnCompleteListener {
 
     private static int ABOUT_ACTIVITY 		= 1;
     private static int PICK_CONTACT 		= 2;
@@ -67,7 +74,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
 	private ViewPager viewPager = null;
     private TabsPagerAdapter mAdapter = null;
-    private ActionBar actionBar = null;
+    private Toolbar newActionBar = null;
+	private ActionBar actionBar = null;
 
 	private boolean isDrawerOpen = false;
 
@@ -84,20 +92,27 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	public static final String INTENT_EXTRA_ADDRESS = "address";
 
 	private String strUri = null;
-	
-	//
-	//
-	//
+
+	private ImageView refresh_icon;
+
+	private FragmentTabHost tabHost;
+
 	private DrawerLayout mDrawerLayout = null;
 	private ListView mDrawerList = null;
 	private ActionBarDrawerToggle mDrawerToggle = null;
+	private List<Bitmap> recyclingBitmaps;
+	private boolean refreshing;
+
+	private int selectedDrawerItem = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-	    setContentView(R.layout.activity_main);
+		recyclingBitmaps = new ArrayList<>();
+		setContentView(R.layout.activity_main);
 	    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+
 	    
     	Locale locale = new Locale("en", "US");
         Locale.setDefault(locale);
@@ -123,7 +138,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         boolean isVirgin = prefs.getBoolean("virgin", false);
 
         if(isValidated || isSecured || isDismissed || isPaired || !isVirgin) {
-        	;
+
         }
         else if(!isSecured && isFirst) {
 			Editor edit = PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -145,262 +160,168 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 			startActivity(intent);
         }
 
-	    tabs = new String[3];
-	    tabs[0] = "Send";
-	    tabs[1] = "Balance";
-	    tabs[2] = "Receive";
 
-        viewPager = (ViewPager) findViewById(R.id.pager);
-        mAdapter = new TabsPagerAdapter(getSupportFragmentManager());
-        viewPager.setAdapter(mAdapter);
+		application = WalletUtil.getInstance(this).getWalletApplication();
 
-        actionBar = getActionBar();
-        actionBar.hide();
+//		setUpTabBar();
 
-        //
-        // masthead logo placement
-        //
-//        actionBar.setTitle("");
-        actionBar.setDisplayOptions(actionBar.getDisplayOptions() | ActionBar.DISPLAY_SHOW_CUSTOM);
-        
-        LinearLayout layout_icons = new LinearLayout(actionBar.getThemedContext());
-        ActionBar.LayoutParams layoutParams = new ActionBar.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT, Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-	    if(!DeviceUtil.getInstance(this).isSmallScreen()) {
-	        layoutParams.height = 72;
-	    }
-	    else {
-	        layoutParams.height = 30;
-	    }
-        layoutParams.width = (layoutParams.height * 2) + 30 + 60;
-        layout_icons.setLayoutParams(layoutParams);
-        layout_icons.setOrientation(LinearLayout.HORIZONTAL);
+		setUpNewActionBar();
+		setupNavigationDrawer();
 
-        ActionBar.LayoutParams imgParams = new ActionBar.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT, Gravity.CENTER_VERTICAL);
-        imgParams.height = layoutParams.height;
-        imgParams.width = layoutParams.height;
-        imgParams.rightMargin = 30;
+//		setUpNewTabBar();
+		setUpViewPager();
+		setListeners();
 
-        final ImageView qr_icon = new ImageView(actionBar.getThemedContext());
-        qr_icon.setImageResource(R.drawable.top_camera_icon);
-        qr_icon.setScaleType(ImageView.ScaleType.FIT_XY);
-        qr_icon.setLayoutParams(imgParams);
-        qr_icon.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
 
-				mDrawerLayout.closeDrawer(mDrawerList);
-				actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+	}
 
-        		Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
-        		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
-        		startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+	public List<Bitmap> getRecyclingBitmaps() {
+		return recyclingBitmaps;
+	}
 
-        		return false;
-            }
-        });
+	public void setRecyclingBitmaps(List<Bitmap> recyclingBitmaps) {
+		this.recyclingBitmaps = recyclingBitmaps;
+	}
 
-        application = WalletUtil.getInstance(this).getWalletApplication();
-        
-        final ImageView refresh_icon = new ImageView(actionBar.getThemedContext());
-        refresh_icon.setImageResource(R.drawable.refresh_icon);
-        refresh_icon.setScaleType(ImageView.ScaleType.FIT_XY);
-        refresh_icon.setLayoutParams(imgParams);
-        refresh_icon.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-				Toast.makeText(MainActivity.this, R.string.refreshing, Toast.LENGTH_LONG).show();
-        		try {
-            		WalletUtil.getInstance(MainActivity.this).getWalletApplication().doMultiAddr(false, null);
-        		}
-        		catch(Exception e) {
-            		Toast.makeText(MainActivity.this, e.toString(), Toast.LENGTH_SHORT).show();
-        		}
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		switch(viewPager.getCurrentItem()){
+					case 0:
+						menu.findItem(R.id.main_refresh).setVisible(false);
+						break;
+					case 1:
+						menu.findItem(R.id.main_refresh).setVisible(true);
+						if(refreshing)
+							menu.findItem(R.id.main_refresh).setVisible(false);
+						else
+							menu.findItem(R.id.main_refresh).setVisible(true);
+						try {
+							((BalanceFragment)mAdapter.getFragment(1)).setRefreshView(refreshing);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						break;
+					case 2:
+						menu.findItem(R.id.main_refresh).setVisible(false);
+						break;
 
-        		return false;
-            }
-        });
-        
-        LinearLayout filler_layout = new LinearLayout(actionBar.getThemedContext());
-        ActionBar.LayoutParams fillerParams = new ActionBar.LayoutParams(ActionBar.LayoutParams.WRAP_CONTENT, ActionBar.LayoutParams.WRAP_CONTENT, Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-        fillerParams.height = 72;
-        fillerParams.width = 60;
-        filler_layout.setLayoutParams(fillerParams);
-        
-        layout_icons.addView(refresh_icon);
-        layout_icons.addView(filler_layout);
-        layout_icons.addView(qr_icon);
+				}
+		return super.onPrepareOptionsMenu(menu);
+	}
 
-        if(android.os.Build.VERSION.SDK_INT >= 21)	{
-        	actionBar.setDisplayOptions(actionBar.getDisplayOptions() | ActionBar.DISPLAY_SHOW_TITLE);
-        }
-        else	{
-        	actionBar.setDisplayOptions(actionBar.getDisplayOptions() ^ ActionBar.DISPLAY_SHOW_TITLE);
-        }
-        actionBar.setDisplayUseLogoEnabled(true);
-        actionBar.setLogo(R.drawable.masthead);
-        actionBar.setHomeButtonEnabled(false);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-//        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF1B8AC7")));
-        
-        actionBar.setCustomView(layout_icons);
-        //
-        actionBar.show();
-        
-        //
-        //
-        //
+	public void setListeners(){
+		viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+			@Override
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+			}
+
+			@Override
+			public void onPageSelected(int position) {
+				invalidateOptionsMenu();
+			}
+
+			@Override
+			public void onPageScrollStateChanged(int state) {
+
+			}
+		});
+	}
+
+	public void navigateToTabContent(int tabNumber){
+		tabHost.setCurrentTab(tabNumber);
+	}
+
+
+	public void setUpViewPager(){
+		List<Fragment> fragments = new ArrayList<>();
+		BalanceFragment balanceFragment = new BalanceFragment();
+		SendFragment sendFragment = new SendFragment();
+		ReceiveFragment receiveFragment = new ReceiveFragment();
+
+		fragments.add(sendFragment);
+		fragments.add(balanceFragment);
+		fragments.add(receiveFragment);
+		viewPager = (ViewPager) findViewById(R.id.pager);
+		mAdapter = new TabsPagerAdapter(getSupportFragmentManager(), fragments);
+		viewPager.setAdapter(mAdapter);
+		viewPager.setCurrentItem(1);
+
+	}
+
+	public TabsPagerAdapter getTabPagerAdapter(){
+		return mAdapter;
+	}
+
+
+	public void setupNavigationDrawer(){
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.drawer_list);
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close) {
-			
 			public void onDrawerClosed(View view) {
-				getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-			    invalidateOptionsMenu();
+				invalidateOptionsMenu();
+				if(view.getTag() != null)
 				isDrawerOpen = false;
+				switch((int)view.getTag()){
+					case 2:
+						doMerchantDirectory();
+						break;
+					case 3:
+						doAddressBook();
+						break;
+					case 4:
+						doAddressBook();
+						break;
+					case 5:
+						doSettings();
+						break;
+					default:
+						break;
+				}
+				view.setTag(null);
 			}
 
 			public void onDrawerOpened(View view) {
-				getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-			    invalidateOptionsMenu();
+				invalidateOptionsMenu();
 				isDrawerOpen = true;
-			    }
+			}
 
 			public void onDrawerSlide(View drawerView, float slideOffset) {
-				if(isDrawerOpen) {
-	                if(slideOffset < .99)	{
-	    				getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-	                }
-				}
-				else {
-	                if(slideOffset > .01)	{
-	    				getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-	                }
-				}
-            }
-			
-			};
+			}
 
-		// hide settings menu
-//		invalidateOptionsMenu();
+		};
+
 
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
-//		ArrayAdapter<String> adapter = new ArrayAdapter<String>(getBaseContext(), R.layout.drawer_list_item, getResources().getStringArray(R.array.menus));
 		NavDrawerListAdapter adapter = new NavDrawerListAdapter(getBaseContext());
 		mDrawerList.setAdapter(adapter);
-		actionBar.setHomeButtonEnabled(true);
-		actionBar.setDisplayHomeAsUpEnabled(true);
 		mDrawerList.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-				if(position == 2) {
-					doMerchantDirectory();
-				}
-				else if(position == 3) {
-					doAddressBook();
-				}
-				else if(position == 4) {
-					doExchangeRates();
-				}
-				else if(position == 5) {
-					doSettings();
-				}
-				else {
-					;
-				}
-				
-				if(position > 1) {
-					// Closing the drawer
-					mDrawerLayout.closeDrawer(mDrawerList);
-
-					getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-				    invalidateOptionsMenu();
-				}
-
+				mDrawerList.setTag(position);
+				mDrawerLayout.closeDrawer(mDrawerList);
 			}
 		});
+	}
 
-        for (String tab : tabs) {
-            actionBar.addTab(actionBar.newTab().setText(tab).setTabListener(this));
-        }
 
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-            @Override
-            public void onPageSelected(int position) {
-//				mDrawerLayout.closeDrawer(mDrawerList);
-				actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-                actionBar.setSelectedNavigationItem(position);
-
-                if(position == 1) {
-                    refresh_icon.setVisibility(View.VISIBLE);
-                }
-                else {
-                    refresh_icon.setVisibility(View.INVISIBLE);
-                }
-            }
-
-            @Override
-            public void onPageScrolled(int arg0, float arg1, int arg2) { ; }
-
-            @Override
-            public void onPageScrollStateChanged(int arg0) { ; }
-        });
-
-        viewPager.setCurrentItem(1);
-        
-//        BlockchainUtil.getInstance(this);
-        
-/*
-        
-							application.sharedCoinGetInfo(new SuccessCallback() {
-
-								public void onSuccess() {			
-									SharedCoin sharedCoin = application.getSharedCoin();
-					                Log.d("SharedCoin", "SharedCoin getInfo: onSuccess ");
-					                Log.d("SharedCoin", "SharedCoin getInfo isEnabled " + sharedCoin.isEnabled());
-					                Log.d("SharedCoin", "SharedCoin getInfo getFeePercent " + sharedCoin.getFeePercent());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMaximumInputValue " + sharedCoin.getMaximumInputValue());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMaximumOfferNumberOfInputs " + sharedCoin.getMaximumOfferNumberOfInputs());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMaximumOfferNumberOfOutputs " + sharedCoin.getMaximumOfferNumberOfOutputs());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMaximumOutputValue " + sharedCoin.getMaximumOutputValue());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMinSupportedVersion " + sharedCoin.getMinSupportedVersion());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMinimumFee " + sharedCoin.getMinimumFee());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMinimumInputValue " + sharedCoin.getMinimumInputValue());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMinimumOutputValue " + sharedCoin.getMinimumOutputValue());
-					                Log.d("SharedCoin", "SharedCoin getInfo getMinimumOutputValueExcludeFee " + sharedCoin.getMinimumOutputValueExcludeFee());
-					                Log.d("SharedCoin", "SharedCoin getInfo getRecommendedIterations " + sharedCoin.getRecommendedIterations());
-					                Log.d("SharedCoin", "SharedCoin getInfo getRecommendedMaxIterations " + sharedCoin.getRecommendedMaxIterations());
-					                Log.d("SharedCoin", "SharedCoin getInfo getRecommendedMinIterations " + sharedCoin.getRecommendedMinIterations());
-					                Log.d("SharedCoin", "SharedCoin getInfo getToken " + sharedCoin.getToken());
-
-					                if (sharedCoin.isEnabled()) {
-
-					                	Log.d("SharedCoin", "is enabled");
-
-					                    List<String> fromAddresses = new ArrayList<String>();
-					                    fromAddresses.add("1NrMxHrinbQsEo5N7MvfMmo3skhEyH5TrK");
-					                    String toAddress = "1FoNEBtcqSA9k7iXqvoEPZnQi7FvDrmpEp";
-					                    BigInteger amount =  new BigInteger("1000000");
-					                    application.sendSharedCoin(fromAddresses, toAddress, amount);
-					            		
-					                	List<String> shared_coin_seeds = new ArrayList<String>();
-					            		shared_coin_seeds.add("sharedcoin-seed:a43790c285abb25bf80ed0008f1abbe1738f");	
-					            		//application.sharedCoinRecoverSeeds(shared_coin_seeds);
-
-					                }
-								}
-								
-								public void onFail() {			
-					                Log.d("SharedCoin", "SharedCoin getInfo: onFail ");						
-								}
-							});            	
-*/        
+	public void setUpNewActionBar(){
+		newActionBar = (Toolbar)findViewById(R.id.my_awesome_toolbar);
+		new MenuInflater(this).inflate(R.menu.addressbook, newActionBar.getMenu());
+		newActionBar.setTitleTextAppearance(this, android.R.style.TextAppearance_Large);
+		newActionBar.setTitleTextColor(getResources().getColor(android.R.color.white));
+		newActionBar.inflateMenu(R.menu.main_menu);
+		setSupportActionBar(newActionBar);
+		newActionBar.setBackgroundColor(getResources().getColor(R.color.blockchain_blue));
+		actionBar = getSupportActionBar();
+		actionBar.setDisplayShowTitleEnabled(true);
+		actionBar.setHomeButtonEnabled(true);
+		actionBar.setDisplayHomeAsUpEnabled(true);
 
 	}
-	
+
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
@@ -418,12 +339,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 		    intent = null;
 		    strUri = null;
-		    new android.os.Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    viewPager.setCurrentItem(0, true);
-                }
-            }, 1000);
+		    new Handler().postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					viewPager.setCurrentItem(0, true);
+				}
+			}, 1000);
         }
 
 	}
@@ -454,7 +375,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		application.setIsPassedPinScreen(true);
 
 		if(TimeOutUtil.getInstance().isTimedOut()) {
-        	Intent intent = new Intent(MainActivity.this, PinEntryActivity.class);
+        	Intent intent = new Intent(MainActivity.this, PinActivity.class);
 			String navigateTo = getIntent().getStringExtra("navigateTo");
 			intent.putExtra("navigateTo", navigateTo);   
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -471,33 +392,67 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	protected void onDestroy() {
 		super.onDestroy();
 		application.setIsPassedPinScreen(false);
+		recycleBitmaps();
+
 	}
-/*
+
+
+
+	public void recycleBitmaps(){
+		AsyncTask.execute(new Runnable() {
+			@Override
+			public void run() {
+				for(Bitmap b: recyclingBitmaps){
+					b.recycle();
+				}
+			}
+		});
+	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		getMenuInflater().inflate(R.menu.main_menu, menu);
 		return true;
 	}
-*/
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(final MenuItem item) {
 
 		if (mDrawerToggle.onOptionsItemSelected(item)) {
 			return true;
 		}
-		/*
-		else {
-		    switch (item.getItemId()) {
-	    	case R.id.action_about:
-	    		doAbout();
-	    		return true;
-	    	default:
-		        return super.onOptionsItemSelected(item);
-		    }
+		else if(item.getItemId() == R.id.main_refresh){
+			refreshing = true;
+			invalidateOptionsMenu();
+			WalletUtil.getInstance(MainActivity.this).getWalletApplication().doMultiAddr(false, new SuccessCallback() {
+				@Override
+				public void onSuccess() {
+					new Handler(getMainLooper()).post(new Runnable() {
+						@Override
+						public void run() {
+							refreshing = false;
+							invalidateOptionsMenu();
+						}
+					});
+
+				}
+
+				@Override
+				public void onFail() {
+					new Handler(getMainLooper()).post(new Runnable() {
+						@Override
+						public void run() {
+							refreshing = false;
+							invalidateOptionsMenu();
+						}
+					});
+				}
+			});
+		}else if(item.getItemId() == R.id.main_qr_scanner){
+			Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
+			intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
+			startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
 		}
-		*/
-		
+
         return super.onOptionsItemSelected(item);
 
 	}
@@ -574,14 +529,14 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         return false;
     }
 
-	@Override
-    public void onTabReselected(Tab tab, FragmentTransaction ft) { ; }
- 
-    @Override
-    public void onTabSelected(Tab tab, FragmentTransaction ft) { viewPager.setCurrentItem(tab.getPosition()); }
- 
-    @Override
-    public void onTabUnselected(Tab tab, FragmentTransaction ft) { ; }
+//	@Override
+//    public void onTabReselected(Tab tab, FragmentTransaction ft) { ; }
+//
+//    @Override
+//    public void onTabSelected(Tab tab, FragmentTransaction ft) { viewPager.setCurrentItem(tab.getPosition()); }
+//
+//    @Override
+//    public void onTabUnselected(Tab tab, FragmentTransaction ft) { ; }
 
     private void doExchangeRates()	{
         if(hasZeroBlock())	{
@@ -629,13 +584,13 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
     private void doSettings()	{
 		TimeOutUtil.getInstance().updatePin();
-    	Intent intent = new Intent(MainActivity.this, info.blockchain.wallet.ui.SettingsActivity.class);
+    	Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
 		startActivityForResult(intent, SETTINGS_ACTIVITY);
     }
 
     private void doAddressBook()	{
 		TimeOutUtil.getInstance().updatePin();
-    	Intent intent = new Intent(MainActivity.this, info.blockchain.wallet.ui.AddressBookActivity.class);
+    	Intent intent = new Intent(MainActivity.this, AddressBookActivity.class);
 		startActivityForResult(intent, ADDRESSBOOK_ACTIVITY);
     }
 
@@ -646,4 +601,18 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
     	startActivityForResult(intent, PICK_CONTACT);
     }
 
+	@Override
+	public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+	}
+
+	@Override
+	public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+	}
+
+	@Override
+	public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+
+	}
 }

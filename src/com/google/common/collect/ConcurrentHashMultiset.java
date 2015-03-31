@@ -203,7 +203,7 @@ public final class ConcurrentHashMultiset<E> extends AbstractMultiset<E> impleme
    */
   private List<E> snapshot() {
     List<E> list = Lists.newArrayListWithExpectedSize(size());
-    for (Multiset.Entry<E> entry : entrySet()) {
+    for (Entry<E> entry : entrySet()) {
       E element = entry.getElement();
       for (int i = entry.getCount(); i > 0; i--) {
         list.add(element);
@@ -483,7 +483,7 @@ public final class ConcurrentHashMultiset<E> extends AbstractMultiset<E> impleme
 
   private transient EntrySet entrySet;
 
-  @Override public Set<Multiset.Entry<E>> entrySet() {
+  @Override public Set<Entry<E>> entrySet() {
     EntrySet result = entrySet;
     if (result == null) {
       entrySet = result = new EntrySet();
@@ -562,16 +562,16 @@ public final class ConcurrentHashMultiset<E> extends AbstractMultiset<E> impleme
       return snapshot().toArray(array);
     }
 
-    private List<Multiset.Entry<E>> snapshot() {
-      List<Multiset.Entry<E>> list = Lists.newArrayListWithExpectedSize(size());
+    private List<Entry<E>> snapshot() {
+      List<Entry<E>> list = Lists.newArrayListWithExpectedSize(size());
       // Not Iterables.addAll(list, this), because that'll forward right back here.
       Iterators.addAll(list, iterator());
       return list;
     }
 
     @Override public boolean remove(Object object) {
-      if (object instanceof Multiset.Entry) {
-        Multiset.Entry<?> entry = (Multiset.Entry<?>) object;
+      if (object instanceof Entry) {
+        Entry<?> entry = (Entry<?>) object;
         Object element = entry.getElement();
         int entryCount = entry.getCount();
         if (entryCount != 0) {

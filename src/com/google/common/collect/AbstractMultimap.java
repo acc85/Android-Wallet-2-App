@@ -269,7 +269,7 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
   @Override
   public boolean putAll(Multimap<? extends K, ? extends V> multimap) {
     boolean changed = false;
-    for (Map.Entry<? extends K, ? extends V> entry : multimap.entries()) {
+    for (Entry<? extends K, ? extends V> entry : multimap.entries()) {
       changed |= put(entry.getKey(), entry.getValue());
     }
     return changed;
@@ -919,9 +919,9 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
 
     @Override public Iterator<K> iterator() {
       return new Iterator<K>() {
-        final Iterator<Map.Entry<K, Collection<V>>> entryIterator
+        final Iterator<Entry<K, Collection<V>>> entryIterator
             = subMap.entrySet().iterator();
-        Map.Entry<K, Collection<V>> entry;
+        Entry<K, Collection<V>> entry;
 
         @Override
         public boolean hasNext() {
@@ -1073,7 +1073,7 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
     return result;
   }
 
-  private transient Collection<Map.Entry<K, V>> entries;
+  private transient Collection<Entry<K, V>> entries;
 
   /*
    * TODO(kevinb): should we copy this javadoc to each concrete class, so that
@@ -1092,12 +1092,12 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
    * collection or its iterator.
    */
   @Override
-  public Collection<Map.Entry<K, V>> entries() {
-    Collection<Map.Entry<K, V>> result = entries;
+  public Collection<Entry<K, V>> entries() {
+    Collection<Entry<K, V>> result = entries;
     return (result == null) ? entries = createEntries() : result;
   }
 
-  Collection<Map.Entry<K, V>> createEntries() {
+  Collection<Entry<K, V>> createEntries() {
     if (this instanceof SetMultimap) {
       return new Multimaps.EntrySet<K, V>() {
         @Override Multimap<K, V> multimap() {
@@ -1128,13 +1128,13 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
    *
    * @return an iterator across map entries
    */
-  Iterator<Map.Entry<K, V>> createEntryIterator() {
+  Iterator<Entry<K, V>> createEntryIterator() {
     return new EntryIterator();
   }
 
   /** Iterator across all key-value pairs. */
-  private class EntryIterator implements Iterator<Map.Entry<K, V>> {
-    final Iterator<Map.Entry<K, Collection<V>>> keyIterator;
+  private class EntryIterator implements Iterator<Entry<K, V>> {
+    final Iterator<Entry<K, Collection<V>>> keyIterator;
     K key;
     Collection<V> collection;
     Iterator<V> valueIterator;
@@ -1149,7 +1149,7 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
     }
 
     void findValueIteratorAndKey() {
-      Map.Entry<K, Collection<V>> entry = keyIterator.next();
+      Entry<K, Collection<V>> entry = keyIterator.next();
       key = entry.getKey();
       collection = entry.getValue();
       valueIterator = collection.iterator();
@@ -1161,7 +1161,7 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
     }
 
     @Override
-    public Map.Entry<K, V> next() {
+    public Entry<K, V> next() {
       if (!valueIterator.hasNext()) {
         findValueIteratorAndKey();
       }
@@ -1202,10 +1202,10 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
       this.submap = submap;
     }
 
-    transient Set<Map.Entry<K, Collection<V>>> entrySet;
+    transient Set<Entry<K, Collection<V>>> entrySet;
 
-    @Override public Set<Map.Entry<K, Collection<V>>> entrySet() {
-      Set<Map.Entry<K, Collection<V>>> result = entrySet;
+    @Override public Set<Entry<K, Collection<V>>> entrySet() {
+      Set<Entry<K, Collection<V>>> result = entrySet;
       return (result == null) ? entrySet = new AsMapEntries() : result;
     }
 
@@ -1275,7 +1275,7 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
         return AsMap.this;
       }
 
-      @Override public Iterator<Map.Entry<K, Collection<V>>> iterator() {
+      @Override public Iterator<Entry<K, Collection<V>>> iterator() {
         return new AsMapIterator();
       }
 
@@ -1289,15 +1289,15 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
         if (!contains(o)) {
           return false;
         }
-        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
+        Entry<?, ?> entry = (Entry<?, ?>) o;
         removeValuesForKey(entry.getKey());
         return true;
       }
     }
 
     /** Iterator across all keys and value collections. */
-    class AsMapIterator implements Iterator<Map.Entry<K, Collection<V>>> {
-      final Iterator<Map.Entry<K, Collection<V>>> delegateIterator
+    class AsMapIterator implements Iterator<Entry<K, Collection<V>>> {
+      final Iterator<Entry<K, Collection<V>>> delegateIterator
           = submap.entrySet().iterator();
       Collection<V> collection;
 
@@ -1307,8 +1307,8 @@ abstract class AbstractMultimap<K, V> implements Multimap<K, V>, Serializable {
       }
 
       @Override
-      public Map.Entry<K, Collection<V>> next() {
-        Map.Entry<K, Collection<V>> entry = delegateIterator.next();
+      public Entry<K, Collection<V>> next() {
+        Entry<K, Collection<V>> entry = delegateIterator.next();
         K key = entry.getKey();
         collection = entry.getValue();
         return Maps.immutableEntry(key, wrapCollection(key, collection));

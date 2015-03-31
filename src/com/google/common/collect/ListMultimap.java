@@ -47,7 +47,7 @@ public interface ListMultimap<K, V> extends Multimap<K, V> {
    *
    * <p>Because the values for a given key may have duplicates and follow the
    * insertion ordering, this method returns a {@link List}, instead of the
-   * {@link java.util.Collection} specified in the {@link Multimap} interface.
+   * {@link Collection} specified in the {@link Multimap} interface.
    */
   @Override
   List<V> get(@Nullable K key);
@@ -57,7 +57,7 @@ public interface ListMultimap<K, V> extends Multimap<K, V> {
    *
    * <p>Because the values for a given key may have duplicates and follow the
    * insertion ordering, this method returns a {@link List}, instead of the
-   * {@link java.util.Collection} specified in the {@link Multimap} interface.
+   * {@link Collection} specified in the {@link Multimap} interface.
    */
   @Override
   List<V> removeAll(@Nullable Object key);
@@ -67,7 +67,7 @@ public interface ListMultimap<K, V> extends Multimap<K, V> {
    *
    * <p>Because the values for a given key may have duplicates and follow the
    * insertion ordering, this method returns a {@link List}, instead of the
-   * {@link java.util.Collection} specified in the {@link Multimap} interface.
+   * {@link Collection} specified in the {@link Multimap} interface.
    */
   @Override
   List<V> replaceValues(K key, Iterable<? extends V> values);

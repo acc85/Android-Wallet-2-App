@@ -383,15 +383,13 @@ public class MyWallet {
 
 		if (addressBook != null) {
 			for (Map<String, Object> addr_book : addressBook) {
-				_labelMap.put((String) addr_book.get("addr"),
-						(String) addr_book.get("label"));
+				_labelMap.put((String) addr_book.get("addr"),(String) addr_book.get("label"));
 			}
 		}
 
 		if (this.getKeysMap() != null) {
 			for (Map<String, Object> key_map : this.getKeysMap()) {
 				String label = (String) key_map.get("label");
-
 				if (label != null)
 					_labelMap.put((String) key_map.get("addr"), label);
 			}

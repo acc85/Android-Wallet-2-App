@@ -141,7 +141,7 @@ public final class RequestPasswordDialog extends DialogFragment {
 
 		final LayoutInflater inflater = LayoutInflater.from(activity);
 
-		final Builder dialog = new AlertDialog.Builder(new ContextThemeWrapper(activity, R.style.Theme_Dialog));
+		final Builder dialog = new Builder(new ContextThemeWrapper(activity, R.style.Theme_Dialog));
 
 		if (passwordType == PasswordTypeSecond) 
 			dialog.setTitle(R.string.second_password_title);

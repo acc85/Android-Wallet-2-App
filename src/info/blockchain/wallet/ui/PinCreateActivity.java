@@ -2,7 +2,6 @@ package info.blockchain.wallet.ui;
 
 import java.security.SecureRandom;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.json.simple.JSONObject;
 import org.spongycastle.util.encoders.Hex;
 
@@ -35,6 +34,11 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import android.widget.TextView.OnEditorActionListener;
+
+import info.blockchain.wallet.ui.Utilities.DeviceUtil;
+import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.EventListeners;
 import piuk.blockchain.android.MyWallet;

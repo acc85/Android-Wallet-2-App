@@ -78,7 +78,7 @@ public class ImmutableSetMultimap<K, V>
    * Returns an immutable multimap containing a single entry.
    */
   public static <K, V> ImmutableSetMultimap<K, V> of(K k1, V v1) {
-    ImmutableSetMultimap.Builder<K, V> builder = ImmutableSetMultimap.builder();
+    Builder<K, V> builder = ImmutableSetMultimap.builder();
     builder.put(k1, v1);
     return builder.build();
   }
@@ -89,7 +89,7 @@ public class ImmutableSetMultimap<K, V>
    * the first are ignored.
    */
   public static <K, V> ImmutableSetMultimap<K, V> of(K k1, V v1, K k2, V v2) {
-    ImmutableSetMultimap.Builder<K, V> builder = ImmutableSetMultimap.builder();
+    Builder<K, V> builder = ImmutableSetMultimap.builder();
     builder.put(k1, v1);
     builder.put(k2, v2);
     return builder.build();
@@ -102,7 +102,7 @@ public class ImmutableSetMultimap<K, V>
    */
   public static <K, V> ImmutableSetMultimap<K, V> of(
       K k1, V v1, K k2, V v2, K k3, V v3) {
-    ImmutableSetMultimap.Builder<K, V> builder = ImmutableSetMultimap.builder();
+    Builder<K, V> builder = ImmutableSetMultimap.builder();
     builder.put(k1, v1);
     builder.put(k2, v2);
     builder.put(k3, v3);
@@ -116,7 +116,7 @@ public class ImmutableSetMultimap<K, V>
    */
   public static <K, V> ImmutableSetMultimap<K, V> of(
       K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4) {
-    ImmutableSetMultimap.Builder<K, V> builder = ImmutableSetMultimap.builder();
+    Builder<K, V> builder = ImmutableSetMultimap.builder();
     builder.put(k1, v1);
     builder.put(k2, v2);
     builder.put(k3, v3);
@@ -131,7 +131,7 @@ public class ImmutableSetMultimap<K, V>
    */
   public static <K, V> ImmutableSetMultimap<K, V> of(
       K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5) {
-    ImmutableSetMultimap.Builder<K, V> builder = ImmutableSetMultimap.builder();
+    Builder<K, V> builder = ImmutableSetMultimap.builder();
     builder.put(k1, v1);
     builder.put(k2, v2);
     builder.put(k3, v3);
@@ -150,7 +150,7 @@ public class ImmutableSetMultimap<K, V>
   }
 
   /**
-   * Multimap for {@link ImmutableSetMultimap.Builder} that maintains key
+   * Multimap for {@link Builder} that maintains key
    * and value orderings and performs better than {@link LinkedHashMultimap}.
    */
   private static class BuilderMultimap<K, V> extends AbstractMultimap<K, V> {
@@ -164,7 +164,7 @@ public class ImmutableSetMultimap<K, V>
   }
 
   /**
-   * Multimap for {@link ImmutableSetMultimap.Builder} that sorts keys and
+   * Multimap for {@link Builder} that sorts keys and
    * maintains value orderings.
    */
   private static class SortedKeyBuilderMultimap<K, V>
@@ -284,7 +284,7 @@ public class ImmutableSetMultimap<K, V>
     @Override public ImmutableSetMultimap<K, V> build() {
       if (keyComparator != null) {
         Multimap<K, V> sortedCopy = new BuilderMultimap<K, V>();
-        List<Map.Entry<K, Collection<V>>> entries = Lists.newArrayList(
+        List<Entry<K, Collection<V>>> entries = Lists.newArrayList(
             builderMultimap.asMap().entrySet());
         Collections.sort(
             entries,
@@ -294,7 +294,7 @@ public class ImmutableSetMultimap<K, V>
                 return entry.getKey();
               }
             }));
-        for (Map.Entry<K, Collection<V>> entry : entries) {
+        for (Entry<K, Collection<V>> entry : entries) {
           sortedCopy.putAll(entry.getKey(), entry.getValue());
         }
         builderMultimap = sortedCopy;

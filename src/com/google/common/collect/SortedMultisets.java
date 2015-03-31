@@ -101,7 +101,7 @@ final class SortedMultisets {
     @Override public SortedSet<E> elementSet() {
       SortedSet<E> result = elementSet;
       if (result == null) {
-        return elementSet = new SortedMultisets.ElementSet<E>() {
+        return elementSet = new ElementSet<E>() {
           @Override SortedMultiset<E> multiset() {
             return DescendingMultiset.this;
           }

@@ -8,12 +8,13 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences.Editor;
 //import android.util.Log;
 
+import info.blockchain.wallet.ui.Utilities.DeviceUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.util.ConnectivityStatus;
 
@@ -44,7 +45,7 @@ public class SetupActivity extends Activity		{
         imgCreate.setTextColor(0xFF1B8AC7);
         imgCreate.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-    			Intent intent = new Intent(SetupActivity.this, info.blockchain.wallet.ui.PinCreateActivity.class);
+    			Intent intent = new Intent(SetupActivity.this, PinCreateActivity.class);
     			startActivity(intent);
             }
         });
@@ -54,8 +55,7 @@ public class SetupActivity extends Activity		{
         imgPair.setTextColor(0xFF808080);
         imgPair.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-//    			Intent intent = new Intent(SetupActivity.this, info.blockchain.wallet.ui.PairingActivity.class);
-    			Intent intent = new Intent(SetupActivity.this, info.blockchain.wallet.ui.PairingHelp.class);
+    			Intent intent = new Intent(SetupActivity.this, PairingHelp.class);
     			startActivity(intent);
             }
         });

@@ -41,8 +41,7 @@ import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.spongycastle.util.encoders.Hex;
 
-import piuk.blockchain.android.Constants;
-import piuk.blockchain.android.SuccessCallback;
+import info.blockchain.wallet.ui.Models.WalletObject;
 import piuk.blockchain.android.util.WalletUtils;
 import android.annotation.SuppressLint;
 import android.util.Pair;
@@ -53,7 +52,6 @@ import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.Base58;
 import com.google.bitcoin.core.DumpedPrivateKey;
 import com.google.bitcoin.core.ECKey;
-import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.core.Sha256Hash;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.Transaction.SigHash;
@@ -228,11 +226,97 @@ public class MyRemoteWallet extends MyWallet {
 		args.append("&format=plain");
 		args.append("&method=create");
 
-		final String response = postURL("https://"+Constants.BLOCKCHAIN_DOMAIN+"/api/receive", args.toString());
+		final String response = postURL("https://" + Constants.BLOCKCHAIN_DOMAIN + "/api/receive", args.toString());
 
 		JSONObject object = (JSONObject) new JSONParser().parse(response);
 
 		return (String)object.get("input_address");
+	}
+
+
+	public List<WalletObject> getWalletAddressesAndBalanceAndWatchType(){
+		List<WalletObject> list = new ArrayList<WalletObject>();
+		String walletAddress = "";
+		for (Map<String, Object> map : getKeysMap()) {
+			if (map.get("tag") == null || (Long) map.get("tag") == 0) {
+				walletAddress = (String) map.get("addr");
+			}
+
+//		List<Map<String, Object>> addressBook = this.getAddressBookMap();
+//
+//		if (addressBook != null) {
+//			for (Map<String, Object> addr_book : addressBook) {
+//				String walletName = (String) addr_book.get("label");
+//				String walletAddress = (String) addr_book.get("addr");
+//				BigInteger walletAmount = getBalance(walletAddress);
+//				boolean walletWatchOnly = false;
+//				try {
+//					walletWatchOnly = isWatchOnly(walletAddress);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//				WalletObject walletObject = new WalletObject(walletName,walletAddress,walletAmount,walletWatchOnly);
+//				list.add(walletObject);
+//			}
+//		}
+
+			if (this.getKeysMap() != null) {
+				for (Map<String, Object> key_map : this.getKeysMap()) {
+					WalletObject walletObject = new WalletObject();
+					String walletName = (String) key_map.get("label");
+					if (walletName != null) {
+						if (walletAddress.equalsIgnoreCase((String) key_map.get("addr"))) {
+							walletObject.setWalletName(walletName);
+							BigInteger walletAmount = getBalance(walletAddress);
+							boolean walletWatchOnly = false;
+							try {
+								walletWatchOnly = isWatchOnly(walletAddress);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							walletObject.setWalletAddress(walletAddress);
+							walletObject.setWatchOnly(walletWatchOnly);
+							walletObject.setWalletAmount(walletAmount);
+							setSentAndReceivedValuesForWallet(walletObject);
+							walletObject.setWalletLabelMap(getLabelMap());
+							walletObject.setMyTransactions(getTransactions());
+							list.add(walletObject);
+						}
+					}
+
+				}
+
+			}
+		}
+//		if (this.getKeysMap() != null) {
+//			for (Map<String, Object> key_map : this.getKeysMap()) {
+//				WalletObject walletObject = new WalletObject();
+//				String walletName = (String) key_map.get("label");
+//				walletObject.setWalletName(walletName);
+//				if (walletName != null) {
+//					if(walletAddress.equalsIgnoreCase((String) key_map.get("addr"))){
+//
+//					}
+//				}
+//					String walletAddress = (String) key_map.get("addr");
+//					BigInteger walletAmount = getBalance(walletAddress);
+//					boolean walletWatchOnly = false;
+//					walletObject.setWalletAddress(walletAddress);
+//					walletObject.setWatchOnly(walletWatchOnly);
+//					walletObject.setWalletAmount(walletAmount);
+//				}
+//				list.add(walletObject);
+//			}
+//		}
+
+		return list;
+	}
+
+	public void setSentAndReceivedValuesForWallet(WalletObject wallet){
+		final Map<String, JSONObject> multiAddrBalancesRoot = getMultiAddrBalancesRoot();
+		final JSONObject addressRoot = multiAddrBalancesRoot.get(wallet.getWalletAddress());
+		wallet.setTotalReceived(BigInteger.valueOf(((Number)addressRoot.get("total_received")).longValue()));
+		wallet.setTotalSent(BigInteger.valueOf(((Number)addressRoot.get("total_sent")).longValue()));
 	}
 
 	public synchronized BigInteger getBalance(String address) {
@@ -1049,7 +1133,7 @@ public class MyRemoteWallet extends MyWallet {
 		BigInteger outputValueSum = BigInteger.ZERO;
 
 		for (Iterator<Entry<String, BigInteger>> iterator = receivingAddresses.entrySet().iterator(); iterator.hasNext();) {
-			Map.Entry<String, BigInteger> mapEntry = iterator.next();
+			Entry<String, BigInteger> mapEntry = iterator.next();
 			String toAddress = mapEntry.getKey();
 			BigInteger amount = mapEntry.getValue();
 
@@ -1156,7 +1240,7 @@ public class MyRemoteWallet extends MyWallet {
 		BigInteger outputValueSum = BigInteger.ZERO;
 
 		for (Iterator<Entry<String, BigInteger>> iterator = receivingAddresses.entrySet().iterator(); iterator.hasNext();) {
-			Map.Entry<String, BigInteger> mapEntry = iterator.next();
+			Entry<String, BigInteger> mapEntry = iterator.next();
 			String toAddress = mapEntry.getKey();
 			BigInteger amount = mapEntry.getValue();
 
@@ -1772,7 +1856,7 @@ public class MyRemoteWallet extends MyWallet {
 		Map<String, String> labelMap = this.getLabelMap();
 
 		synchronized(labelMap) {
-			for (Map.Entry<String, String> entry : labelMap.entrySet()) {
+			for (Entry<String, String> entry : labelMap.entrySet()) {
 				array.add(new Pair<String, String>(entry.getValue(), entry.getKey()) {
 					public String toString() {
 						return first.toString();

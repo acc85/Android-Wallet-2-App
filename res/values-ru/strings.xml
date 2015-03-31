@@ -61,8 +61,6 @@
   <string name="ask_for_private_key">Для осуществления этой транзакции необходим закрытый ключ для биткоин-адреса %s. Хотите ли вы отсканировать его из бумажного кошелька?</string>
   <string name="continue_without_fee">Продолжить без комиссии</string>
   <string name="add_fee">Добавить комиссию</string>
-  <string name="cancel">Отмена</string>
-  <string name="yes">Да</string>
   <string name="ask_you_sure_unpair">Вы уверены, что хотите отменить привязку вашего устройства?</string>
   <string name="ask_you_sure_exit">Вы уверены, что хотите выйти из кошелька Blockchain?</string>
   <string name="error_setting_label">Ошибка установки метки адреса</string>

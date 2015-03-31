@@ -318,7 +318,7 @@ public abstract class ImmutableSet<E> extends ImmutableCollection<E>
     if (!elements.hasNext()) {
       return of(first);
     } else {
-      return new ImmutableSet.Builder<E>()
+      return new Builder<E>()
           .add(first)
           .addAll(elements)
           .build();

@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.SuccessCallback;

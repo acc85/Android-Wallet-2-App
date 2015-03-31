@@ -67,8 +67,6 @@
     <string name="ask_for_private_key">This transaction requires the private key for Bitcoin address %s. Would you like to scan it from a paper wallet?</string>
     <string name="continue_without_fee">Continue Without Fee</string>
     <string name="add_fee">Add Fee</string>
-    <string name="cancel">Cancel</string>
-    <string name="yes">Yes</string>
     <string name="ask_you_sure_unpair">Are you sure you want to unpair your device?</string>
     <string name="ask_you_sure_exit">Are you sure you want to exit Blockchain Wallet?</string>
     <string name="error_setting_label">Error setting address label</string>

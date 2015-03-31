@@ -40,7 +40,6 @@ import com.google.bitcoin.core.*;
 import com.google.bitcoin.params.MainNetParams;
 //import com.google.bitcoin.core.Wallet.AutosaveEventListener;
 //import com.google.bitcoin.store.WalletExtensionSerializer;
-import com.google.bitcoin.store.WalletProtobufSerializer;
 
 import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
@@ -48,29 +47,22 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.spongycastle.util.encoders.Hex;
 
-import piuk.blockchain.android.EventListeners;
-import piuk.blockchain.android.MyRemoteWallet;
-import piuk.blockchain.android.MyRemoteWallet.NotModfiedException;
-import piuk.blockchain.android.MyWallet;
-import piuk.blockchain.android.R;
 //import piuk.blockchain.android.service.BlockchainServiceImpl;
 import piuk.blockchain.android.service.WebsocketService;
 import piuk.blockchain.android.ui.AbstractWalletActivity;
 import piuk.blockchain.android.ui.PinEntryActivity;
-import piuk.blockchain.android.SuccessCallback;
 //import piuk.blockchain.android.ui.dialogs.RekeyWalletDialog;
 //import piuk.blockchain.android.util.ErrorReporter;
 import piuk.blockchain.android.util.RandomOrgGenerator;
 import piuk.blockchain.android.util.WalletUtils;
 import info.blockchain.wallet.ui.ObjectSuccessCallback;
-import info.blockchain.wallet.ui.WalletUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 
 import java.io.File;
 import java.io.FileInputStream; 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.math.BigInteger;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.security.MessageDigest;
@@ -89,7 +81,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressLint("SimpleDateFormat")
 public class WalletApplication extends Application {
 	private MyRemoteWallet blockchainWallet;
-	private SharedCoin sharedCoin;
 
 	private final Handler handler = new Handler();
 	private Timer timer;
@@ -621,14 +612,6 @@ public class WalletApplication extends Application {
 
 	public MyRemoteWallet getRemoteWallet() {
 		return blockchainWallet;
-	}
-
-	public SharedCoin getSharedCoin() {
-		return sharedCoin;
-	}
-
-	public void setSharedCoin(SharedCoin sharedCoin) {
-		this.sharedCoin = sharedCoin;
 	}
 	
 	public String getGUID() {
@@ -1527,11 +1510,11 @@ public class WalletApplication extends Application {
 					final String key = new String(Hex.encode(bytes), "UTF-8");
 					random.nextBytes(bytes);
 					final String value = new String(Hex.encode(bytes), "UTF-8");
-					final JSONObject response = piuk.blockchain.android.ui.PinEntryActivity.apiStoreKey(key, value, pin);
+					final JSONObject response = PinEntryActivity.apiStoreKey(key, value, pin);
 					if (response.get("success") != null) {
 						callback.onSuccess();
 						edit.putString("pin_kookup_key", key);
-						edit.putString("encrypted_password", MyWallet.encrypt(application.getRemoteWallet().getTemporyPassword(), value, piuk.blockchain.android.ui.PinEntryActivity.PBKDF2Iterations));
+						edit.putString("encrypted_password", MyWallet.encrypt(application.getRemoteWallet().getTemporyPassword(), value, PinEntryActivity.PBKDF2Iterations));
 
 						if (!edit.commit()) {
 							throw new Exception("Error Saving Preferences");
@@ -1726,117 +1709,5 @@ public class WalletApplication extends Application {
 			return "unknown";
 		}
 	}
- 
-	public void sharedCoinRecoverSeeds(List<String> shared_coin_seeds) {
-		sharedCoin.recoverSeeds(shared_coin_seeds, new SuccessCallback() {
-			@Override
-			public void onSuccess() {
-//	            Log.d("SharedCoin", "SharedCoin recoverSeeds onSuccess");				
-				handler.post(new Runnable() {
-					public void run() {
-						Toast.makeText(WalletApplication.this, "SharedCoin recoverSeeds Success", Toast.LENGTH_LONG).show();
-					}
-				});
-			}
 
-			@Override
-			public void onFail() {
-//	            Log.d("SharedCoin", "SharedCoin recoverSeeds onFail");				
-				handler.post(new Runnable() {
-					public void run() {
-						Toast.makeText(WalletApplication.this, "SharedCoin recoverSeeds fail", Toast.LENGTH_LONG).show();
-					}
-				});
-			}
-		});
-	}
-	
-	public void sendSharedCoin(List<String> fromAddresses, String toAddress, BigInteger amount) {
-        if (SharedCoin.VERSION > sharedCoin.getMinSupportedVersion()) {
-            try {
-				sharedCoin.sendSharedCoin(4, fromAddresses, amount, toAddress, new ObjectSuccessCallback() {
-					@Override
-					public void onSuccess(final Object obj) {
-//			            Log.d("SharedCoin", "SharedCoin sendSharedCoin onSuccess");				
-						handler.post(new Runnable() {
-							public void run() {
-								Toast.makeText(WalletApplication.this, (String) obj, Toast.LENGTH_LONG).show();
-							}
-						});
-					}
-
-					@Override
-					public void onFail(final String error) {
-//			            Log.d("SharedCoin", "SharedCoin sendSharedCoin onFail " + error);				
-						handler.post(new Runnable() {
-							public void run() {
-								Toast.makeText(WalletApplication.this, error, Toast.LENGTH_LONG).show();
-							}
-						});
-					}
-					
-				});
-			} catch (Exception e) {
-//	            Log.d("SharedCoin", "SharedCoin sendSharedCoin Exception " + e.getLocalizedMessage());				
-				Toast.makeText(WalletApplication.this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-				e.printStackTrace();
-			}
-        }
-	}
-
-
-	public void sharedCoinGetInfo(final SuccessCallback callback) {
-		final MyRemoteWallet blockchainWallet = this.blockchainWallet;
-
-		if (blockchainWallet == null) {
-			if (callback != null)
-				callback.onFail();
-
-			return;
-		}
-
-    	sharedCoin = SharedCoin.getInstance(this, blockchainWallet);
-
-		new Thread(new Runnable() {
-			public void run() {
-				try {
-
-					try {
-						sharedCoin.getInfo();
-					} catch (Exception e) {
-						e.printStackTrace(); 
-
-						try {
-							//Sleep for a bit and retry
-							Thread.sleep(5000);
-						} catch (InterruptedException e1) {
-							e1.printStackTrace();
-						}
-
-						try {
-							sharedCoin.getInfo();
-						} catch (Exception e1) {
-							e1.printStackTrace(); 
-
-							EventListeners.invokeOnMultiAddrError();
-
-							if (callback != null)
-								callback.onFail();
-
-							return;
-						}
-					}
-
-					if (callback != null)
-						callback.onSuccess();
-
-					handler.post(new Runnable() {
-						public void run() {
-						}
-					});
-				} finally {
-				}
-			}
-		}).start();
-	}
 }

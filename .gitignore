@@ -1,7 +1,11 @@
 .classpath
 .project
+.idea/
 .settings/
+build/
+backup/
 bin/
 gen/
 target/
 .DS_Store
+.log

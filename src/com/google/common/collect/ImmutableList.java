@@ -267,7 +267,7 @@ public abstract class ImmutableList<E> extends ImmutableCollection<E>
     if (!elements.hasNext()) {
       return of(first);
     } else {
-      return new ImmutableList.Builder<E>()
+      return new Builder<E>()
           .add(first)
           .addAll(elements)
           .build();

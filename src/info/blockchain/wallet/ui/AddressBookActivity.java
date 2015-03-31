@@ -13,25 +13,23 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.Transaction;
 
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.EventListeners;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.WalletApplication;
 import piuk.blockchain.android.WalletApplication.AddAddressCallback;
 import piuk.blockchain.android.SuccessCallback;
-import piuk.blockchain.android.ui.dialogs.RequestPasswordDialog;
 import piuk.blockchain.android.util.WalletUtils;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ContextMenu;
@@ -41,11 +39,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
 import android.view.View.OnCreateContextMenuListener;
-import android.view.inputmethod.InputMethodManager;
 import android.view.MenuInflater;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -53,16 +49,11 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Toast;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager; 
-import android.support.v4.app.Fragment;
 //import android.util.Log;
-import android.text.InputType;
+
 
 public class AddressBookActivity extends Activity  {
 
@@ -159,14 +150,14 @@ public class AddressBookActivity extends Activity  {
 
 	    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        ActionBar actionBar = getActionBar();
-        actionBar.hide();
-        actionBar.setDisplayOptions(actionBar.getDisplayOptions() ^ ActionBar.DISPLAY_SHOW_TITLE);
-        actionBar.setLogo(R.drawable.masthead);
-//        actionBar.setHomeButtonEnabled(false);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF1B8AC7")));
-        actionBar.show();
+//        ActionBar actionBar = getActionBar();
+//        actionBar.hide();
+//        actionBar.setDisplayOptions(actionBar.getDisplayOptions() ^ ActionBar.DISPLAY_SHOW_TITLE);
+//        actionBar.setLogo(R.drawable.masthead);
+////        actionBar.setHomeButtonEnabled(false);
+//        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+//        actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FF1B8AC7")));
+//        actionBar.show();
         
         //
         //
@@ -188,76 +179,76 @@ public class AddressBookActivity extends Activity  {
 		// hide settings menu
 //		invalidateOptionsMenu();
 
-		mDrawerLayout.setDrawerListener(mDrawerToggle);
-		ArrayAdapter<String> hAdapter = new ArrayAdapter<String>(getBaseContext(), R.layout.drawer_list_item, getResources().getStringArray(R.array.menus_addressBook));
-		mDrawerList.setAdapter(hAdapter);
-		actionBar.setHomeButtonEnabled(true);
-		actionBar.setDisplayHomeAsUpEnabled(true);
-		mDrawerList.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				
-			    switch (position) {
-
-			    case 0:
-		    	 {
-
-		    		if (remoteWallet.isDoubleEncrypted() && remoteWallet.temporySecondPassword == null) {
-
-		    			/*
-						RequestPasswordDialog.show(getFragmentManager(), new SuccessCallback() {
-
-							public void onSuccess() {							
-								doAddAddress();
-							}
-
-							public void onFail() {
-								Toast.makeText(application, R.string.send_no_password_error, Toast.LENGTH_LONG).show();
-							}
-
-						}, RequestPasswordDialog.PasswordTypeSecond);
-						*/
-
-					}
-					else {
-						doAddAddress();
-					}
-
-		    	 }
-
-		    		break;
-
-		    	case 1:
-		    	 {
-			    		Intent intent = new Intent(AddressBookActivity.this, ZBarScannerActivity.class);
-			    		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
-		        		startActivityForResult(intent, SCAN_WATCH_ONLY);
-		    	 }
-		    		break;
-		    	case 2:
-		    	 {
-			    		Intent intent = new Intent(AddressBookActivity.this, ZBarScannerActivity.class);
-			    		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
-		        		startActivityForResult(intent, SCAN_CONTACTS_ADDRESS);	    		
-		    	 }
-		    		break;
-		    	case 3:
-		    	 {
-			    		Intent intent = new Intent(AddressBookActivity.this, ZBarScannerActivity.class);
-			    		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
-		        		startActivityForResult(intent, SCAN_PRIVATE_KEY);	    		
-		    	 }
-		    		break;
-		    	default:
-		    		break;
-			    }
-
-				mDrawerLayout.closeDrawer(mDrawerList);
-			    invalidateOptionsMenu();
-
-			}
-		});
+//		mDrawerLayout.setDrawerListener(mDrawerToggle);
+//		ArrayAdapter<String> hAdapter = new ArrayAdapter<String>(getBaseContext(), R.layout.drawer_list_item, getResources().getStringArray(R.array.menus_addressBook));
+//		mDrawerList.setAdapter(hAdapter);
+////		actionBar.setHomeButtonEnabled(true);
+////		actionBar.setDisplayHomeAsUpEnabled(true);
+//		mDrawerList.setOnItemClickListener(new OnItemClickListener() {
+//
+//			@Override
+//			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//
+//			    switch (position) {
+//
+//			    case 0:
+//		    	 {
+//
+//		    		if (remoteWallet.isDoubleEncrypted() && remoteWallet.temporySecondPassword == null) {
+//
+//		    			/*
+//						RequestPasswordDialog.show(getFragmentManager(), new SuccessCallback() {
+//
+//							public void onSuccess() {
+//								doAddAddress();
+//							}
+//
+//							public void onFail() {
+//								Toast.makeText(application, R.string.send_no_password_error, Toast.LENGTH_LONG).show();
+//							}
+//
+//						}, RequestPasswordDialog.PasswordTypeSecond);
+//						*/
+//
+//					}
+//					else {
+//						doAddAddress();
+//					}
+//
+//		    	 }
+//
+//		    		break;
+//
+//		    	case 1:
+//		    	 {
+//			    		Intent intent = new Intent(AddressBookActivity.this, ZBarScannerActivity.class);
+//			    		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
+//		        		startActivityForResult(intent, SCAN_WATCH_ONLY);
+//		    	 }
+//		    		break;
+//		    	case 2:
+//		    	 {
+//			    		Intent intent = new Intent(AddressBookActivity.this, ZBarScannerActivity.class);
+//			    		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
+//		        		startActivityForResult(intent, SCAN_CONTACTS_ADDRESS);
+//		    	 }
+//		    		break;
+//		    	case 3:
+//		    	 {
+//			    		Intent intent = new Intent(AddressBookActivity.this, ZBarScannerActivity.class);
+//			    		intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
+//		        		startActivityForResult(intent, SCAN_PRIVATE_KEY);
+//		    	 }
+//		    		break;
+//		    	default:
+//		    		break;
+//			    }
+//
+//				mDrawerLayout.closeDrawer(mDrawerList);
+//			    invalidateOptionsMenu();
+//
+//			}
+//		});
 
         boolean gotoContactsAddresses = false;
         Bundle extras = getIntent().getExtras();
@@ -271,6 +262,8 @@ public class AddressBookActivity extends Activity  {
         //
         //
 		remoteWallet = WalletUtil.getInstance(this).getRemoteWallet();
+		System.out.println("remote wallet is:"+remoteWallet);
+		System.out.println("waletutil is:"+ WalletUtil.getInstance(this).getRemoteWallet());
 		String[] activeAddresses = remoteWallet.getActiveAddresses();
 
 		allAddresses = new ArrayList<String>();
@@ -301,7 +294,7 @@ public class AddressBookActivity extends Activity  {
         listView.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {
             @Override 
             public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        	    AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+        	    AdapterContextMenuInfo info = (AdapterContextMenuInfo)menuInfo;
 //        		Toast.makeText(AddressBookActivity.this, "" + info.position, Toast.LENGTH_LONG).show();
                 MenuInflater inflater = getMenuInflater();
                 inflater.inflate(R.menu.address_list, menu);
@@ -703,7 +696,7 @@ public class AddressBookActivity extends Activity  {
 	    	case R.id.edit_label:
 //	    		Toast.makeText(AddressBookActivity.this, "edit label", Toast.LENGTH_LONG).show();
 	    		
-	        	Intent intent = new Intent(AddressBookActivity.this, info.blockchain.wallet.ui.EditSetting.class);
+	        	Intent intent = new Intent(AddressBookActivity.this, EditSetting.class);
 	        	intent.putExtra("prompt", "Edit label");
 	        	intent.putExtra("existing", address);
 	        	intent.putExtra("value", labelMap.get(address));
@@ -854,7 +847,7 @@ public class AddressBookActivity extends Activity  {
     
     private void doQRActivity() {
     	
-		android.content.ClipboardManager clipboard = (android.content.ClipboardManager)this.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+		android.content.ClipboardManager clipboard = (android.content.ClipboardManager)this.getSystemService(Context.CLIPBOARD_SERVICE);
   		android.content.ClipData clip = android.content.ClipData.newPlainText("Address", allAddresses.get(curSelection).substring(1));
   		clipboard.setPrimaryClip(clip);
  		Toast.makeText(this, "Address copied to clipboard", Toast.LENGTH_LONG).show();

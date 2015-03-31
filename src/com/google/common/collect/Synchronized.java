@@ -513,7 +513,7 @@ final class Synchronized {
       implements Multimap<K, V> {
     transient Set<K> keySet;
     transient Collection<V> valuesCollection;
-    transient Collection<Map.Entry<K, V>> entries;
+    transient Collection<Entry<K, V>> entries;
     transient Map<K, Collection<V>> asMap;
     transient Multiset<K> keys;
 
@@ -638,7 +638,7 @@ final class Synchronized {
     }
 
     @Override
-    public Collection<Map.Entry<K, V>> entries() {
+    public Collection<Entry<K, V>> entries() {
       synchronized (mutex) {
         if (entries == null) {
           entries = typePreservingCollection(delegate().entries(), mutex);
@@ -733,7 +733,7 @@ final class Synchronized {
 
   private static class SynchronizedSetMultimap<K, V>
       extends SynchronizedMultimap<K, V> implements SetMultimap<K, V> {
-    transient Set<Map.Entry<K, V>> entrySet;
+    transient Set<Entry<K, V>> entrySet;
 
     SynchronizedSetMultimap(
         SetMultimap<K, V> delegate, @Nullable Object mutex) {
@@ -758,7 +758,7 @@ final class Synchronized {
         return delegate().replaceValues(key, values); // copy not synchronized
       }
     }
-    @Override public Set<Map.Entry<K, V>> entries() {
+    @Override public Set<Entry<K, V>> entries() {
       synchronized (mutex) {
         if (entrySet == null) {
           entrySet = set(delegate().entries(), mutex);
@@ -835,24 +835,24 @@ final class Synchronized {
   }
 
   private static class SynchronizedAsMapEntries<K, V>
-      extends SynchronizedSet<Map.Entry<K, Collection<V>>> {
+      extends SynchronizedSet<Entry<K, Collection<V>>> {
     SynchronizedAsMapEntries(
-        Set<Map.Entry<K, Collection<V>>> delegate, @Nullable Object mutex) {
+        Set<Entry<K, Collection<V>>> delegate, @Nullable Object mutex) {
       super(delegate, mutex);
     }
 
-    @Override public Iterator<Map.Entry<K, Collection<V>>> iterator() {
+    @Override public Iterator<Entry<K, Collection<V>>> iterator() {
       // Must be manually synchronized.
-      final Iterator<Map.Entry<K, Collection<V>>> iterator = super.iterator();
-      return new ForwardingIterator<Map.Entry<K, Collection<V>>>() {
-        @Override protected Iterator<Map.Entry<K, Collection<V>>> delegate() {
+      final Iterator<Entry<K, Collection<V>>> iterator = super.iterator();
+      return new ForwardingIterator<Entry<K, Collection<V>>>() {
+        @Override protected Iterator<Entry<K, Collection<V>>> delegate() {
           return iterator;
         }
 
-        @Override public Map.Entry<K, Collection<V>> next() {
-          final Map.Entry<K, Collection<V>> entry = super.next();
+        @Override public Entry<K, Collection<V>> next() {
+          final Entry<K, Collection<V>> entry = super.next();
           return new ForwardingMapEntry<K, Collection<V>>() {
-            @Override protected Map.Entry<K, Collection<V>> delegate() {
+            @Override protected Entry<K, Collection<V>> delegate() {
               return entry;
             }
             @Override public Collection<V> getValue() {
@@ -921,7 +921,7 @@ final class Synchronized {
       implements Map<K, V> {
     transient Set<K> keySet;
     transient Collection<V> values;
-    transient Set<Map.Entry<K, V>> entrySet;
+    transient Set<Entry<K, V>> entrySet;
 
     SynchronizedMap(Map<K, V> delegate, @Nullable Object mutex) {
       super(delegate, mutex);
@@ -954,7 +954,7 @@ final class Synchronized {
     }
 
     @Override
-    public Set<Map.Entry<K, V>> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
       synchronized (mutex) {
         if (entrySet == null) {
           entrySet = set(delegate().entrySet(), mutex);
@@ -1153,7 +1153,7 @@ final class Synchronized {
 
   private static class SynchronizedAsMap<K, V>
       extends SynchronizedMap<K, Collection<V>> {
-    transient Set<Map.Entry<K, Collection<V>>> asMapEntrySet;
+    transient Set<Entry<K, Collection<V>>> asMapEntrySet;
     transient Collection<Collection<V>> asMapValues;
 
     SynchronizedAsMap(Map<K, Collection<V>> delegate, @Nullable Object mutex) {
@@ -1168,7 +1168,7 @@ final class Synchronized {
       }
     }
 
-    @Override public Set<Map.Entry<K, Collection<V>>> entrySet() {
+    @Override public Set<Entry<K, Collection<V>>> entrySet() {
       synchronized (mutex) {
         if (asMapEntrySet == null) {
           asMapEntrySet = new SynchronizedAsMapEntries<K, V>(

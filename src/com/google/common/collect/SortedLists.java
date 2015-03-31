@@ -166,7 +166,7 @@ import javax.annotation.Nullable;
      * list that compares as equal to the key.
      *
      * <p>This is equivalent to the behavior of
-     * {@link java.util.Collections#binarySearch(List, Object)} when the key isn't present, since
+     * {@link Collections#binarySearch(List, Object)} when the key isn't present, since
      * {@code ~insertionIndex} is equal to {@code -1 - insertionIndex}.
      */
     INVERTED_INSERTION_INDEX {

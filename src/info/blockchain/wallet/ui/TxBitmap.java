@@ -1,6 +1,5 @@
 package info.blockchain.wallet.ui;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -13,8 +12,10 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Matrix;
-import android.util.Log;
 import android.content.res.Resources;
+
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 //import android.util.Log;
 
 public class TxBitmap {

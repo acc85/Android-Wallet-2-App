@@ -10,16 +10,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.json.simple.JSONObject;
-
 import net.sourceforge.zbar.Symbol;
+
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.EventListeners;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.MyRemoteWallet.FeePolicy;
 import piuk.blockchain.android.MyRemoteWallet.SendProgress;
 import piuk.blockchain.android.WalletApplication.AddAddressCallback;
-import piuk.blockchain.android.MyWallet;
-import piuk.blockchain.android.SharedCoin;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.WalletApplication;
@@ -36,7 +36,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -45,7 +44,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -95,7 +93,6 @@ import android.view.ContextThemeWrapper;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.bitcoin.core.Address;
-import com.google.bitcoin.core.DumpedPrivateKey;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.TransactionOutput;
@@ -455,7 +452,7 @@ public class SendFragment extends Fragment   {
 					});
 				}
 
-				public boolean onReady(Transaction tx, BigInteger fee, MyRemoteWallet.FeePolicy feePolicy, long priority) {
+				public boolean onReady(Transaction tx, BigInteger fee, FeePolicy feePolicy, long priority) {
 
 					boolean containsOutputLessThanThreshold = false;
 					for (TransactionOutput output : tx.getOutputs()) {
@@ -465,9 +462,9 @@ public class SendFragment extends Fragment   {
 						}
 					}
 
-					if (feePolicy != MyRemoteWallet.FeePolicy.FeeNever && fee.compareTo(BigInteger.ZERO) == 0) {
+					if (feePolicy != FeePolicy.FeeNever && fee.compareTo(BigInteger.ZERO) == 0) {
 						if (tx.bitcoinSerialize().length > 1000 || containsOutputLessThanThreshold) {
-							makeTransaction(MyRemoteWallet.FeePolicy.FeeForce);
+							makeTransaction(FeePolicy.FeeForce);
 							return false;
 						} else if (priority < 97600000L) {
 							handler.post(new Runnable() {
@@ -483,13 +480,13 @@ public class SendFragment extends Fragment   {
 
 									alert.setButton(AlertDialog.BUTTON_NEUTRAL, getString(R.string.continue_without_fee), new DialogInterface.OnClickListener() {
 										public void onClick(DialogInterface dialog, int id) {
-											makeTransaction(MyRemoteWallet.FeePolicy.FeeNever);
+											makeTransaction(FeePolicy.FeeNever);
 											dialog.dismiss();
 										} }); 
 
 									alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.add_fee), new DialogInterface.OnClickListener() {
 										public void onClick(DialogInterface dialog, int id) {
-											makeTransaction(MyRemoteWallet.FeePolicy.FeeForce);
+											makeTransaction(FeePolicy.FeeForce);
 
 											dialog.dismiss();
 										}}); 
@@ -646,7 +643,7 @@ public class SendFragment extends Fragment   {
 
 				@Override
 				public boolean onReady(Transaction tx, BigInteger fee,
-						MyRemoteWallet.FeePolicy feePolicy, long priority) {
+						FeePolicy feePolicy, long priority) {
 					// TODO Auto-generated method stub
 					return false;
 				}
@@ -675,7 +672,7 @@ public class SendFragment extends Fragment   {
 				}
 			};
 
-			public void makeTransaction(MyRemoteWallet.FeePolicy feePolicy) {
+			public void makeTransaction(FeePolicy feePolicy) {
 				if (application.getRemoteWallet() == null)
 					return;
 
@@ -689,12 +686,12 @@ public class SendFragment extends Fragment   {
 					if (sendType != null && sendType.equals(SendTypeCustomSend))
 						btConfirm.performClick();
 
-					if (feePolicy == MyRemoteWallet.FeePolicy.FeeNever) {
+					if (feePolicy == FeePolicy.FeeNever) {
 						fee = BigInteger.ZERO;
-					} else if (feePolicy == MyRemoteWallet.FeePolicy.FeeForce) {
+					} else if (feePolicy == FeePolicy.FeeForce) {
 						fee = baseFee;
 					} else if (sendType != null && sendType.equals(SendTypeCustomSend)) {
-						feePolicy = MyRemoteWallet.FeePolicy.FeeOnlyIfNeeded;
+						feePolicy = FeePolicy.FeeOnlyIfNeeded;
 						fee = cs.getFee();
 					} else {
 						fee = (wallet.getFeePolicy() == 1) ? baseFee : BigInteger.ZERO;
@@ -768,7 +765,7 @@ public class SendFragment extends Fragment   {
 
 						if (sendType != null && sendType == SendTypeQuickSend) {
 //							Toast.makeText(SendFragment.this.getActivity(), "Quick send", Toast.LENGTH_LONG).show();
-							quickSend(receivingAddress, biBaseFee, MyRemoteWallet.FeePolicy.FeeForce);
+							quickSend(receivingAddress, biBaseFee, FeePolicy.FeeForce);
 
 						} else if (sendType != null && sendType == SendTypeCustomSend) {
 							if(currentSelectedAddress == null) {
@@ -832,7 +829,7 @@ public class SendFragment extends Fragment   {
 				}
 			}
 
-			public void quickSend(Address receivingAddress, BigInteger fee, MyRemoteWallet.FeePolicy feePolicy) throws Exception {
+			public void quickSend(Address receivingAddress, BigInteger fee, FeePolicy feePolicy) throws Exception {
 				if (application.getRemoteWallet() == null)
 					return;
 
@@ -850,7 +847,7 @@ public class SendFragment extends Fragment   {
 
 			}
 
-			public void customSend(Address receivingAddress, BigInteger fee, MyRemoteWallet.FeePolicy feePolicy) {
+			public void customSend(Address receivingAddress, BigInteger fee, FeePolicy feePolicy) {
 				if (application.getRemoteWallet() == null)
 					return;
 
@@ -905,12 +902,12 @@ public class SendFragment extends Fragment   {
 
 				final MyRemoteWallet remoteWallet = application.getRemoteWallet();
 
-				final MyRemoteWallet.FeePolicy feePolicy;
+				final FeePolicy feePolicy;
 
 				if (sendType != null && sendType == SendTypeQuickSend) {					
-					feePolicy = MyRemoteWallet.FeePolicy.FeeForce;
+					feePolicy = FeePolicy.FeeForce;
 				} else {
-					feePolicy = MyRemoteWallet.FeePolicy.FeeOnlyIfNeeded;
+					feePolicy = FeePolicy.FeeOnlyIfNeeded;
 				}
 				
 				final BigInteger baseFee = remoteWallet.getBaseFee();
@@ -924,7 +921,7 @@ public class SendFragment extends Fragment   {
 
 				            	try {
 									remoteWallet.sendCoinsEmail(emailOrNumber, getBTCEnteredOutputValue(edAmount1.getText().toString()),
-											MyRemoteWallet.FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
+											FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
 									sendViaEmail = false;
 									sendViaSMS = false;
 									emailOrNumber = null;
@@ -937,7 +934,7 @@ public class SendFragment extends Fragment   {
 									numberFormated = "+" + numberFormated;
 //									Log.d("sendCoinsSMS", "numberFormated: "+ numberFormated);
 									remoteWallet.sendCoinsSMS(numberFormated, getBTCEnteredOutputValue(edAmount1.getText().toString()),
-											MyRemoteWallet.FeePolicy.FeeForce, biBaseFee, progressEmailSMS);										
+											FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
 									sendViaEmail = false;
 									sendViaSMS = false;
 									emailOrNumber = null;
@@ -961,7 +958,7 @@ public class SendFragment extends Fragment   {
 //							Toast.makeText(getActivity(), "Email send:" + emailOrNumber + "," + getBTCEnteredOutputValue(edAmount1.getText().toString()), Toast.LENGTH_SHORT).show();	// ###
 
 							remoteWallet.sendCoinsEmail(emailOrNumber, getBTCEnteredOutputValue(edAmount1.getText().toString()),
-									MyRemoteWallet.FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
+									FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
 
 							sendViaEmail = false;
 							sendViaSMS = false;
@@ -981,7 +978,7 @@ public class SendFragment extends Fragment   {
 //							Log.d("sendCoinsSMS", "numberFormated: "+ numberFormated);
 //		    				Toast.makeText(getActivity(), "numberFormated: "+ numberFormated, Toast.LENGTH_LONG).show();
 							remoteWallet.sendCoinsSMS(numberFormated, getBTCEnteredOutputValue(edAmount1.getText().toString()),
-									MyRemoteWallet.FeePolicy.FeeForce, biBaseFee, progressEmailSMS);										
+									FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
 
 							sendViaEmail = false;
 							sendViaSMS = false;
@@ -1317,12 +1314,12 @@ public class SendFragment extends Fragment   {
           public boolean onTouch(View v, MotionEvent event) {
           	
               switch (event.getAction())	{
-              	case android.view.MotionEvent.ACTION_DOWN:
-              	case android.view.MotionEvent.ACTION_MOVE:
+              	case MotionEvent.ACTION_DOWN:
+              	case MotionEvent.ACTION_MOVE:
               		magic_contacts.setBackgroundColor(colorOn);                		
               		break;
-              	case android.view.MotionEvent.ACTION_UP:
-              	case android.view.MotionEvent.ACTION_CANCEL:
+              	case MotionEvent.ACTION_UP:
+              	case MotionEvent.ACTION_CANCEL:
               		magic_contacts.setBackgroundColor(colorOff);
               		
                 	if(!isMagic) {
@@ -1346,16 +1343,16 @@ public class SendFragment extends Fragment   {
           public boolean onTouch(View v, MotionEvent event) {
           	
               switch (event.getAction())	{
-              	case android.view.MotionEvent.ACTION_DOWN:
-              	case android.view.MotionEvent.ACTION_MOVE:
+              	case MotionEvent.ACTION_DOWN:
+              	case MotionEvent.ACTION_MOVE:
               		magic_qr.setBackgroundColor(colorOn);
               		Intent intent = new Intent(getActivity(), ZBarScannerActivity.class);
               		intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{ Symbol.QRCODE } );
               		startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
               		magic_qr.setBackgroundColor(colorOff);
               		break;
-              	case android.view.MotionEvent.ACTION_UP:
-              	case android.view.MotionEvent.ACTION_CANCEL:
+              	case MotionEvent.ACTION_UP:
+              	case MotionEvent.ACTION_CANCEL:
               		magic_qr.setBackgroundColor(colorOff);
               		break;
               	}
@@ -1371,12 +1368,12 @@ public class SendFragment extends Fragment   {
           public boolean onTouch(View v, MotionEvent event) {
           	
               switch (event.getAction())	{
-              	case android.view.MotionEvent.ACTION_DOWN:
-              	case android.view.MotionEvent.ACTION_MOVE:
+              	case MotionEvent.ACTION_DOWN:
+              	case MotionEvent.ACTION_MOVE:
               		magic_keyboard.setBackgroundColor(colorOn);                		
               		break;
-              	case android.view.MotionEvent.ACTION_UP:
-              	case android.view.MotionEvent.ACTION_CANCEL:
+              	case MotionEvent.ACTION_UP:
+              	case MotionEvent.ACTION_CANCEL:
               		magic_keyboard.setBackgroundColor(colorOff);
               		
                 	if(isKeyboard) {
@@ -1441,38 +1438,41 @@ public class SendFragment extends Fragment   {
         
 //        Log.d("BlockchainWallet", "setUserVisible");
 
-        if(isVisibleToUser) {
+		try {
+			if (isVisibleToUser) {
+				/*
+				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+				strCurrentFiatCode = prefs.getString("ccurrency", "USD");
+				strCurrentFiatSymbol = prefs.getString(strCurrentFiatCode + "-SYM", "$");
+				*/
+				strCurrentFiatCode = BlockchainUtil.getInstance(getActivity()).getFiatCode();
+				strCurrentFiatSymbol = BlockchainUtil.getInstance(getActivity()).getFiatSymbol();
 
-        	/*
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            strCurrentFiatCode = prefs.getString("ccurrency", "USD");
-            strCurrentFiatSymbol = prefs.getString(strCurrentFiatCode + "-SYM", "$");
-            */
-            strCurrentFiatCode = BlockchainUtil.getInstance(getActivity()).getFiatCode();
-            strCurrentFiatSymbol = BlockchainUtil.getInstance(getActivity()).getFiatSymbol();
+				if (isBTC) {
+					//				if(tvAmount2 == null){
+					//					tvAmount2 = (TextView)((MainActivity)getActivity()).getTabPagerAdapter().getFragment(1).getView().findViewById(R.id.amount2);
+					//				}
+					tvAmount2.setText(tvAmount2.getText().toString().substring(0, tvAmount2.getText().toString().length() - 4) + " " + strCurrentFiatCode);
+				} else {
+					tvCurrency.setText(strCurrentFiatSymbol);
+				}
 
-            if(isBTC) {
-        		tvAmount2.setText(tvAmount2.getText().toString().substring(0, tvAmount2.getText().toString().length() - 4) + " " + strCurrentFiatCode);
-            }
-            else {
-        		tvCurrency.setText(strCurrentFiatSymbol);
-            }
-
-            if(edAddress.getText().length() < 1 && (edAmount1.getText().length() < 1 || edAmount1.getText().equals("0.0000"))) {
-            	ivClearInput.setVisibility(View.INVISIBLE);
-            	isKeyboard = true;
-            }
-            else {
-            	ivClearInput.setVisibility(View.VISIBLE);
-            	isKeyboard = false;
-            }
-        }
+				if (edAddress.getText().length() < 1 && (edAmount1.getText().length() < 1 || edAmount1.getText().equals("0.0000"))) {
+					ivClearInput.setVisibility(View.INVISIBLE);
+					isKeyboard = true;
+				} else {
+					ivClearInput.setVisibility(View.VISIBLE);
+					isKeyboard = false;
+				}
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
     }
 
     @Override
     public void onResume() {
     	super.onResume();
-
 //        Log.d("BlockchainWallet", "onResume");
 
 //        IntentFilter filter = new IntentFilter(ACTION_INTENT);
@@ -1579,13 +1579,13 @@ public class SendFragment extends Fragment   {
 		                    }
 		                    ce.close();
 
-		                    Cursor cn = getActivity().getContentResolver().query(CommonDataKinds.Phone.CONTENT_URI, null, CommonDataKinds.Phone.CONTACT_ID +" = ?", new String[]{id}, null);
+		                    Cursor cn = getActivity().getContentResolver().query(Phone.CONTENT_URI, null, Phone.CONTACT_ID +" = ?", new String[]{id}, null);
 		                    while(cn.moveToNext())
 		                    {
-		                        int type = cn.getInt(cn.getColumnIndex(CommonDataKinds.Phone.TYPE));
+		                        int type = cn.getInt(cn.getColumnIndex(Phone.TYPE));
 		                        if (type == Phone.TYPE_MOBILE)
 		                        {
-		                            strNumber = cn.getString(cn.getColumnIndex(CommonDataKinds.Phone.NUMBER));
+		                            strNumber = cn.getString(cn.getColumnIndex(Phone.NUMBER));
 		                            strNumber = (strNumber.equals("null")) ? null : strNumber;
 		                        }
 		                    }
@@ -2089,7 +2089,7 @@ public class SendFragment extends Fragment   {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface d, int id) {
                                     d.dismiss();
-                                	Intent intent = new Intent(getActivity(), info.blockchain.wallet.ui.AddressBookActivity.class);
+                                	Intent intent = new Intent(getActivity(), AddressBookActivity.class);
                                 	intent.putExtra("SENDING", true);
                             		startActivity(intent);
                                 }
@@ -2564,7 +2564,7 @@ public class SendFragment extends Fragment   {
 		final BigInteger entered_amount = getBTCEnteredOutputValue(edAmount1.getText().toString());
 		final WalletApplication application = (WalletApplication) getActivity().getApplication();
 
-		MyRemoteWallet.FeePolicy feePolicy = MyRemoteWallet.FeePolicy.FeeOnlyIfNeeded;
+		FeePolicy feePolicy = FeePolicy.FeeOnlyIfNeeded;
 		BigInteger fee = cs.getFee();
 
 		if (application.getRemoteWallet() == null)
@@ -2616,7 +2616,7 @@ public class SendFragment extends Fragment   {
 				});
 			}
 
-			public boolean onReady(Transaction tx, BigInteger fee, MyRemoteWallet.FeePolicy feePolicy, long priority) {
+			public boolean onReady(Transaction tx, BigInteger fee, FeePolicy feePolicy, long priority) {
 
 				boolean containsOutputLessThanThreshold = false;
 				for (TransactionOutput output : tx.getOutputs()) {
@@ -2626,7 +2626,7 @@ public class SendFragment extends Fragment   {
 					}
 				}
 
-				if (feePolicy != MyRemoteWallet.FeePolicy.FeeNever && fee.compareTo(BigInteger.ZERO) == 0) {
+				if (feePolicy != FeePolicy.FeeNever && fee.compareTo(BigInteger.ZERO) == 0) {
 					if (tx.bitcoinSerialize().length > 1000 || containsOutputLessThanThreshold) {
 //						makeTransaction(MyRemoteWallet.FeePolicy.FeeForce);
 						return false;
@@ -2894,8 +2894,8 @@ public class SendFragment extends Fragment   {
     }
 
     private void doSend2Friends() throws Exception	{
-    	Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-    	intent.setData(ContactsContract.Contacts.CONTENT_URI);
+    	Intent intent = new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI);
+    	intent.setData(Contacts.CONTENT_URI);
     	startActivityForResult(intent, PICK_CONTACT);    	
     }
 

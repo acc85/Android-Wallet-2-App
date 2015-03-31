@@ -77,12 +77,12 @@ abstract class AbstractMapBasedMultiset<E> extends AbstractMultiset<E>
   /**
    * {@inheritDoc}
    *
-   * <p>Invoking {@link Multiset.Entry#getCount} on an entry in the returned
+   * <p>Invoking {@link Entry#getCount} on an entry in the returned
    * set always returns the current count of that element in the multiset, as
    * opposed to the count at the time the entry was retrieved.
    */
   @Override
-  public Set<Multiset.Entry<E>> entrySet() {
+  public Set<Entry<E>> entrySet() {
     return super.entrySet();
   }
 
@@ -90,7 +90,7 @@ abstract class AbstractMapBasedMultiset<E> extends AbstractMultiset<E>
   Iterator<Entry<E>> entryIterator() {
     final Iterator<Map.Entry<E, Count>> backingEntries =
         backingMap.entrySet().iterator();
-    return new Iterator<Multiset.Entry<E>>() {
+    return new Iterator<Entry<E>>() {
       Map.Entry<E, Count> toRemove;
 
       @Override
@@ -99,7 +99,7 @@ abstract class AbstractMapBasedMultiset<E> extends AbstractMultiset<E>
       }
 
       @Override
-      public Multiset.Entry<E> next() {
+      public Entry<E> next() {
         final Map.Entry<E, Count> mapEntry = backingEntries.next();
         toRemove = mapEntry;
         return new Multisets.AbstractEntry<E>() {

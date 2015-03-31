@@ -728,8 +728,8 @@ public final class MapConstraints {
     @Override public Set<V> get(K key) {
       return (Set<V>) super.get(key);
     }
-    @Override public Set<Map.Entry<K, V>> entries() {
-      return (Set<Map.Entry<K, V>>) super.entries();
+    @Override public Set<Entry<K, V>> entries() {
+      return (Set<Entry<K, V>>) super.entries();
     }
     @Override public Set<V> removeAll(Object key) {
       return (Set<V>) super.removeAll(key);

@@ -1,17 +1,13 @@
 package info.blockchain.merchant.directory;
 
-import info.blockchain.wallet.ui.AddressBookActivity;
-import info.blockchain.wallet.ui.DeviceUtil;
-import info.blockchain.wallet.ui.MainActivity;
+import info.blockchain.wallet.ui.Utilities.DeviceUtil;
 import info.blockchain.wallet.ui.OnSwipeTouchListener;
-import info.blockchain.wallet.ui.TypefaceUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import net.sourceforge.zbar.Symbol;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -29,7 +25,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -50,11 +45,8 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 
 import piuk.blockchain.android.R;
-import piuk.blockchain.android.WalletApplication.AddAddressCallback;
 import piuk.blockchain.android.util.WalletUtils;
 
-import com.dm.zbar.android.scanner.ZBarConstants;
-import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;

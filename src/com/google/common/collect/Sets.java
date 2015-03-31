@@ -1145,7 +1145,7 @@ public final class Sets {
 
       @Override public boolean equals(Object obj) {
         if (obj instanceof CartesianSet.Axis) {
-          CartesianSet.Axis that = (CartesianSet.Axis) obj;
+          Axis that = (Axis) obj;
           return this.choices.equals(that.choices);
           // dividends must be equal or we wouldn't have gotten this far
         }

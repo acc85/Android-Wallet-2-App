@@ -17,8 +17,8 @@
 
 package piuk.blockchain.android.service;
 
-import info.blockchain.wallet.ui.TimeOutUtil;
-import info.blockchain.wallet.ui.TxNotifUtil;
+import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
+import info.blockchain.wallet.ui.Utilities.TxNotifUtil;
 
 import java.math.BigInteger;
 import java.util.LinkedList;
@@ -31,9 +31,6 @@ import piuk.blockchain.android.MyTransactionOutput;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.WalletApplication;
-import piuk.blockchain.android.R.drawable;
-import piuk.blockchain.android.R.raw;
-import piuk.blockchain.android.R.string;
 import piuk.blockchain.android.ui.WalletActivity;
 import piuk.blockchain.android.util.WalletUtils;
 import android.app.Notification;

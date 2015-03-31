@@ -61,8 +61,6 @@
   <string name="ask_for_private_key">这笔交易需要使用私钥来获取比特币地址 %s。 你想要从从纸钱包扫描私钥吗？</string>
   <string name="continue_without_fee">确认提交无交易费的交易</string>
   <string name="add_fee">添加交易费</string>
-  <string name="cancel">取消</string>
-  <string name="yes">Yes</string>
   <string name="ask_you_sure_unpair">您确定想要取消您的设备的配对么？</string>
   <string name="ask_you_sure_exit">你确定你想要退出 Blockchain 钱包？</string>
   <string name="error_setting_label">设置地址标签错误</string>

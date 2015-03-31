@@ -1,6 +1,6 @@
 package info.blockchain.merchant.directory;
  
-import info.blockchain.wallet.ui.DeviceUtil;
+import info.blockchain.wallet.ui.Utilities.DeviceUtil;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,11 +31,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 
 import piuk.blockchain.android.R;
 
@@ -175,7 +172,7 @@ public class ListActivity extends Activity {
         adapter = new BTCBusinessAdapter();
         listView.setAdapter(adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
             	

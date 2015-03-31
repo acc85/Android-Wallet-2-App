@@ -51,7 +51,7 @@ public interface SetMultimap<K, V> extends Multimap<K, V> {
    * {@inheritDoc}
    *
    * <p>Because a {@code SetMultimap} has unique values for a given key, this
-   * method returns a {@link Set}, instead of the {@link java.util.Collection}
+   * method returns a {@link Set}, instead of the {@link Collection}
    * specified in the {@link Multimap} interface.
    */
   @Override
@@ -61,7 +61,7 @@ public interface SetMultimap<K, V> extends Multimap<K, V> {
    * {@inheritDoc}
    *
    * <p>Because a {@code SetMultimap} has unique values for a given key, this
-   * method returns a {@link Set}, instead of the {@link java.util.Collection}
+   * method returns a {@link Set}, instead of the {@link Collection}
    * specified in the {@link Multimap} interface.
    */
   @Override
@@ -71,7 +71,7 @@ public interface SetMultimap<K, V> extends Multimap<K, V> {
    * {@inheritDoc}
    *
    * <p>Because a {@code SetMultimap} has unique values for a given key, this
-   * method returns a {@link Set}, instead of the {@link java.util.Collection}
+   * method returns a {@link Set}, instead of the {@link Collection}
    * specified in the {@link Multimap} interface.
    *
    * <p>Any duplicates in {@code values} will be stored in the multimap once.
@@ -83,7 +83,7 @@ public interface SetMultimap<K, V> extends Multimap<K, V> {
    * {@inheritDoc}
    *
    * <p>Because a {@code SetMultimap} has unique values for a given key, this
-   * method returns a {@link Set}, instead of the {@link java.util.Collection}
+   * method returns a {@link Set}, instead of the {@link Collection}
    * specified in the {@link Multimap} interface.
    */
   @Override

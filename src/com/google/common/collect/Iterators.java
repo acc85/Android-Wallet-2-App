@@ -999,7 +999,7 @@ public final class Iterators {
    *
    * @return the number of elements skipped
    * @since 3.0
-   * @deprecated This method has been renamed to {@link #advance(java.util.Iterator, int) advance}.
+   * @deprecated This method has been renamed to {@link #advance(Iterator, int) advance}.
    *     This method is scheduled to be deleted in Guava 14.0.
    */
   @Beta

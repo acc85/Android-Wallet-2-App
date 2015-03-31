@@ -21,7 +21,6 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.Toast;
-import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -37,6 +36,9 @@ import org.json.simple.parser.JSONParser;
 
 import info.blockchain.api.LatestBlock;
 import info.blockchain.api.Transaction;
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.MyTransaction;
 import piuk.blockchain.android.Constants;
@@ -160,7 +162,7 @@ public class TxActivity extends Activity	{
         tvNoteLabel.setText(R.string.tx_note);
         tvValueNote.setText(remoteWallet.getTxNote(strTxHash));
         txNoteRowLayout = (LinearLayout)findViewById(R.id.txNoteRowLayout);
-        txNoteRowLayout.setOnClickListener(new View.OnClickListener() {
+        txNoteRowLayout.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
             	promptDialogForAddNoteToTx();
@@ -186,7 +188,7 @@ public class TxActivity extends Activity	{
             tvTS.setTextColor(getResources().getColor(R.color.blockchain_green));
         }
     	strFiat = BlockchainUtil.BTC2Fiat(strResult);
-        tvResult.setOnClickListener(new View.OnClickListener() {
+        tvResult.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
             	if(!isHistorical) {
@@ -229,7 +231,7 @@ public class TxActivity extends Activity	{
             @Override
             public boolean onTouch(View v, MotionEvent event) {
             	
-      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
       		    android.content.ClipData clip = android.content.ClipData.newPlainText("Hash", strTxHash);
       		    clipboard.setPrimaryClip(clip);
      			Toast.makeText(TxActivity.this, R.string.hash_copied, Toast.LENGTH_LONG).show();
@@ -646,7 +648,7 @@ public class TxActivity extends Activity	{
 						        	final String addr = transaction.getInputs().get(i).addr;
 						        	tvFromAddress.setOnClickListener(new OnClickListener() {
 						        	    public void onClick(View arg0) {
-						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
 						          		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
 						          		    clipboard.setPrimaryClip(clip);
 						         			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
@@ -662,7 +664,7 @@ public class TxActivity extends Activity	{
 						        	}
 						        	tvFromAddress2.setOnClickListener(new OnClickListener() {
 						        	    public void onClick(View arg0) {
-						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
 						          		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
 						          		    clipboard.setPrimaryClip(clip);
 						         			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
@@ -744,7 +746,7 @@ public class TxActivity extends Activity	{
 						    	final String addr = toTxAddress;
 						    	tvToAddress.setOnClickListener(new OnClickListener() {
 						    	    public void onClick(View arg0) {
-						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
 						      		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
 						      		    clipboard.setPrimaryClip(clip);
 						     			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
@@ -760,7 +762,7 @@ public class TxActivity extends Activity	{
 						    	}
 						    	tvToAddress2.setOnClickListener(new OnClickListener() {
 						    	    public void onClick(View arg0) {
-						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
 						      		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
 						      		    clipboard.setPrimaryClip(clip);
 						     			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();

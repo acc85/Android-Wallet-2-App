@@ -36,6 +36,7 @@ import android.graphics.Bitmap;
 import android.widget.Toast;
 //import android.util.Log;
 
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.MyWallet;
@@ -245,8 +246,10 @@ public class PairingHelp extends Activity {
 												e.printStackTrace();
 											}
 
-								        	Intent intent = new Intent(PairingHelp.this, PinEntryActivity.class);
-								        	intent.putExtra("S", "1");
+//								        	Intent intent = new Intent(PairingHelp.this, PinEntryActivity.class);
+//								        	intent.putExtra("S", "1");
+											Intent intent = new Intent(PairingHelp.this, PinActivity.class);
+											intent.putExtra("S", "1");
 											intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 								    		startActivity(intent);
 

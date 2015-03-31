@@ -116,11 +116,11 @@ public final class Multisets {
       return (es == null) ? elementSet = createElementSet() : es;
     }
 
-    transient Set<Multiset.Entry<E>> entrySet;
+    transient Set<Entry<E>> entrySet;
 
     @SuppressWarnings("unchecked")
-    @Override public Set<Multiset.Entry<E>> entrySet() {
-      Set<Multiset.Entry<E>> es = entrySet;
+    @Override public Set<Entry<E>> entrySet() {
+      Set<Entry<E>> es = entrySet;
       return (es == null)
           // Safe because the returned set is made unmodifiable and Entry
           // itself is readonly
@@ -288,7 +288,7 @@ public final class Multisets {
    * @param n the count to be associated with the returned entry
    * @throws IllegalArgumentException if {@code n} is negative
    */
-  public static <E> Multiset.Entry<E> immutableEntry(@Nullable E e, int n) {
+  public static <E> Entry<E> immutableEntry(@Nullable E e, int n) {
     return new ImmutableEntry<E>(e, n);
   }
 
@@ -657,16 +657,16 @@ public final class Multisets {
 
   /**
    * Implementation of the {@code equals}, {@code hashCode}, and
-   * {@code toString} methods of {@link Multiset.Entry}.
+   * {@code toString} methods of {@link Entry}.
    */
-  abstract static class AbstractEntry<E> implements Multiset.Entry<E> {
+  abstract static class AbstractEntry<E> implements Entry<E> {
     /**
      * Indicates whether an object equals this entry, following the behavior
-     * specified in {@link Multiset.Entry#equals}.
+     * specified in {@link Entry#equals}.
      */
     @Override public boolean equals(@Nullable Object object) {
-      if (object instanceof Multiset.Entry) {
-        Multiset.Entry<?> that = (Multiset.Entry<?>) object;
+      if (object instanceof Entry) {
+        Entry<?> that = (Entry<?>) object;
         return this.getCount() == that.getCount()
             && Objects.equal(this.getElement(), that.getElement());
       }
@@ -675,7 +675,7 @@ public final class Multisets {
 
     /**
      * Return this entry's hash code, following the behavior specified in
-     * {@link Multiset.Entry#hashCode}.
+     * {@link Entry#hashCode}.
      */
     @Override public int hashCode() {
       E e = getElement();

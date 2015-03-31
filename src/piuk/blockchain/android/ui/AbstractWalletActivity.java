@@ -118,7 +118,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 
 	public static interface ActivityDelegate {
 		public void onActivityResult(final int requestCode, final int resultCode,
-				final Intent intent);
+									 final Intent intent);
 	}
 
 	@Override
@@ -222,7 +222,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 				if (!hasInternetConnection() || !isWifiEnabled()) {
 					handler.post(new Runnable() {
 						public void run() {
-							AlertDialog.Builder builder = new AlertDialog.Builder(self);
+							Builder builder = new Builder(self);
 
 							builder.setTitle(R.string.network_error);
 
@@ -240,7 +240,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 				} else {
 					handler.post(new Runnable() {
 						public void run() {
-							AlertDialog.Builder builder = new AlertDialog.Builder(self);
+							Builder builder = new Builder(self);
 
 							builder.setTitle(R.string.blockchain_network_error);
 
@@ -368,7 +368,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 	}
 
 	public void errorDialog(final int title, final String message) {
-		final Builder dialog = new AlertDialog.Builder(this);
+		final Builder dialog = new Builder(this);
 		dialog.setTitle(title);
 		dialog.setMessage(message);
 		dialog.setNeutralButton(R.string.button_dismiss, null);
@@ -376,7 +376,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 	}
 
 	public void errorDialog(final int title, final String message, final DialogInterface.OnClickListener dismiss) {
-		final Builder dialog = new AlertDialog.Builder(this);
+		final Builder dialog = new Builder(this);
 		dialog.setTitle(title);
 		dialog.setMessage(message);
 		dialog.setNeutralButton(R.string.button_dismiss, dismiss);
@@ -424,7 +424,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 	}
 
 	private void handleScanPrivateKeyPair(final ECKey key) throws Exception {
-		final AlertDialog.Builder b = new AlertDialog.Builder(this);
+		final Builder b = new Builder(this);
 
 		b.setPositiveButton(R.string.sweep_text, null);
 
@@ -678,7 +678,7 @@ public abstract class AbstractWalletActivity extends FragmentActivity {
 			}
 		}
 
-		final AlertDialog.Builder b = new AlertDialog.Builder(this);
+		final Builder b = new Builder(this);
 
 		final String finalAddress = address;
 		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {

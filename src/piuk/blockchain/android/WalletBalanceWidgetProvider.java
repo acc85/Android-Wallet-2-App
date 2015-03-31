@@ -17,7 +17,7 @@
 
 package piuk.blockchain.android;
 
-import info.blockchain.wallet.ui.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
 import info.blockchain.wallet.ui.MainActivity;
 import info.blockchain.wallet.ui.ObjectSuccessCallback;
 import info.blockchain.wallet.ui.PinEntryActivity;
@@ -33,10 +33,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.widget.RemoteViews;
-import piuk.blockchain.android.R;
-import piuk.blockchain.android.ui.WalletActivity;
 
 /**
  * @author Andreas Schildbach
@@ -190,9 +187,9 @@ public class WalletBalanceWidgetProvider extends AppWidgetProvider {
             context.startActivity(navigateIntent);    		
 		} else if (action.equals(WalletBalanceWidgetProvider.ACTION_WIDGET_REFRESH_BALANCE)) {
 			updateBalance(context, remoteViews);
-		} else if (action.equals(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_DISABLED)) {
+		} else if (action.equals(AppWidgetManager.ACTION_APPWIDGET_DISABLED)) {
 			updateBalance(context, remoteViews);
-		} else if (action.equals(android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE)) {
+		} else if (action.equals(AppWidgetManager.ACTION_APPWIDGET_UPDATE)) {
 			updateBalance(context, remoteViews);
 		} else {
 			updateBalance(context, remoteViews);

@@ -12,20 +12,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import net.sourceforge.zbar.Symbol;
-
 //import org.json.simple.JSONObject;
 
+import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
+import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.R;
-import piuk.blockchain.android.WalletApplication;
+
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -35,7 +34,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -44,7 +42,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnTouchListener;
-import android.view.View.OnFocusChangeListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -61,8 +58,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.text.InputType;
 //import android.util.Log;
 
-import com.dm.zbar.android.scanner.ZBarConstants;
-import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.bitcoin.uri.BitcoinURI;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -150,7 +145,7 @@ public class ReceiveFragment extends Fragment   {
         ivReceivingQR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-    			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)getActivity().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+    			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
     		    android.content.ClipData clip = null;
 	        	if (currentSelectedAddress != null) {
 	    		    clip = android.content.ClipData.newPlainText("Send address", currentSelectedAddress);
@@ -186,7 +181,7 @@ public class ReceiveFragment extends Fragment   {
     				;
     			}
     			
-    			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)getActivity().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+    			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
     		    android.content.ClipData clip = null;
 	        	if (currentSelectedAddress != null) {
 	    		    clip = android.content.ClipData.newPlainText("Send address", currentSelectedAddress);
@@ -562,12 +557,12 @@ public class ReceiveFragment extends Fragment   {
           public boolean onTouch(View v, MotionEvent event) {
           	
               switch (event.getAction())	{
-              	case android.view.MotionEvent.ACTION_DOWN:
-              	case android.view.MotionEvent.ACTION_MOVE:
+              	case MotionEvent.ACTION_DOWN:
+              	case MotionEvent.ACTION_MOVE:
               		magic_contacts.setBackgroundColor(colorOn);                		
               		break;
-              	case android.view.MotionEvent.ACTION_UP:
-              	case android.view.MotionEvent.ACTION_CANCEL:
+              	case MotionEvent.ACTION_UP:
+              	case MotionEvent.ACTION_CANCEL:
               		magic_contacts.setBackgroundColor(colorOff);
               		
                 	if(!isMagic) {
@@ -594,12 +589,12 @@ public class ReceiveFragment extends Fragment   {
           public boolean onTouch(View v, MotionEvent event) {
           	
               switch (event.getAction())	{
-              	case android.view.MotionEvent.ACTION_DOWN:
-              	case android.view.MotionEvent.ACTION_MOVE:
+              	case MotionEvent.ACTION_DOWN:
+              	case MotionEvent.ACTION_MOVE:
               		magic_keyboard.setBackgroundColor(colorOn);                		
               		break;
-              	case android.view.MotionEvent.ACTION_UP:
-              	case android.view.MotionEvent.ACTION_CANCEL:
+              	case MotionEvent.ACTION_UP:
+              	case MotionEvent.ACTION_CANCEL:
               		magic_keyboard.setBackgroundColor(colorOff);
               		
                 	if(isKeyboard) {
@@ -1033,7 +1028,7 @@ public class ReceiveFragment extends Fragment   {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface d, int id) {
                                     d.dismiss();
-                                	Intent intent = new Intent(getActivity(), info.blockchain.wallet.ui.AddressBookActivity.class);
+                                	Intent intent = new Intent(getActivity(), AddressBookActivity.class);
                                 	intent.putExtra("SENDING", true);
                             		startActivity(intent);
                                 }

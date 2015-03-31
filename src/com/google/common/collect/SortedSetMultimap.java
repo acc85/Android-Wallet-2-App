@@ -61,7 +61,7 @@ public interface SortedSetMultimap<K, V> extends SetMultimap<K, V> {
    *
    * <p>Because a {@code SortedSetMultimap} has unique sorted values for a given
    * key, this method returns a {@link SortedSet}, instead of the
-   * {@link java.util.Collection} specified in the {@link Multimap} interface.
+   * {@link Collection} specified in the {@link Multimap} interface.
    */
   @Override
   SortedSet<V> get(@Nullable K key);
@@ -71,7 +71,7 @@ public interface SortedSetMultimap<K, V> extends SetMultimap<K, V> {
    *
    * <p>Because a {@code SortedSetMultimap} has unique sorted values for a given
    * key, this method returns a {@link SortedSet}, instead of the
-   * {@link java.util.Collection} specified in the {@link Multimap} interface.
+   * {@link Collection} specified in the {@link Multimap} interface.
    */
   @Override
   SortedSet<V> removeAll(@Nullable Object key);
@@ -82,7 +82,7 @@ public interface SortedSetMultimap<K, V> extends SetMultimap<K, V> {
    *
    * <p>Because a {@code SortedSetMultimap} has unique sorted values for a given
    * key, this method returns a {@link SortedSet}, instead of the
-   * {@link java.util.Collection} specified in the {@link Multimap} interface.
+   * {@link Collection} specified in the {@link Multimap} interface.
    *
    * <p>Any duplicates in {@code values} will be stored in the multimap once.
    */

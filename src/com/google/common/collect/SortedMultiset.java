@@ -121,7 +121,7 @@ public interface SortedMultiset<E> extends Multiset<E>, SortedIterable<E> {
    * upperBoundType)}.
    */
   SortedMultiset<E> subMultiset(E lowerBound, BoundType lowerBoundType,
-      E upperBound, BoundType upperBoundType);
+                                E upperBound, BoundType upperBoundType);
 
   /**
    * Returns a view of this multiset restricted to the elements greater than

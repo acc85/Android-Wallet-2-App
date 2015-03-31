@@ -123,7 +123,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>
  * <strong>Explicit Lock Acquisition Ordering</strong>
  * <p>
- * The {@link CycleDetectingLockFactory.WithExplicitOrdering} class can be used
+ * The {@link WithExplicitOrdering} class can be used
  * to enforce an application-specific ordering in addition to performing general
  * cycle detection.
  * <p>

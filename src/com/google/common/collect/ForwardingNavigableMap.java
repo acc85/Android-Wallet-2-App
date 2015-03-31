@@ -294,7 +294,7 @@ public abstract class ForwardingNavigableMap<K, V>
         }
 
         @Override
-        public java.util.Map.Entry<K, V> next() {
+        public Entry<K, V> next() {
           if (!hasNext()) {
             throw new NoSuchElementException();
           }

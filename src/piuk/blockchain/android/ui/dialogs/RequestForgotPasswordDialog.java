@@ -21,6 +21,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Dialog;
@@ -37,16 +38,19 @@ import android.text.InputType;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.view.Gravity;
 import android.widget.Toast;
 import piuk.blockchain.android.EventListeners;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.R;
+import piuk.blockchain.android.RequestPasswordSuccessCallback;
 import piuk.blockchain.android.WalletApplication;
 import piuk.blockchain.android.ui.AbstractWalletActivity;
 import piuk.blockchain.android.SuccessCallback;
@@ -56,8 +60,11 @@ import piuk.blockchain.android.SuccessCallback;
  */
 public final class RequestForgotPasswordDialog extends DialogFragment {
 	private static final String FRAGMENT_TAG = RequestForgotPasswordDialog.class.getName();
-	private SuccessCallback callback = null;
+	private RequestPasswordSuccessCallback callback = null;
 	private static List<WeakReference<RequestForgotPasswordDialog>> fragmentRefs = new ArrayList<WeakReference<RequestForgotPasswordDialog>>();
+	private View checkPasswordProgress;
+	private View enterPasswordLayout;
+	private EditText passwordField;
 
 	private static String passwordResult;
 
@@ -83,7 +90,21 @@ public final class RequestForgotPasswordDialog extends DialogFragment {
 		}
 	}
 
-	public static DialogFragment show(final FragmentManager fm, SuccessCallback callback) {
+	public void showProgress(boolean show){
+		if(show){
+			checkPasswordProgress.setVisibility(View.VISIBLE);
+			enterPasswordLayout.setVisibility(View.INVISIBLE);
+		}else{
+			checkPasswordProgress.setVisibility(View.GONE);
+			enterPasswordLayout.setVisibility(View.VISIBLE);
+			passwordField.requestFocus();
+			getDialog().getWindow().setSoftInputMode(
+					WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+		}
+
+	}
+
+	public static DialogFragment show(final FragmentManager fm, RequestPasswordSuccessCallback callback) {
 
 		final DialogFragment prev = (DialogFragment) fm.findFragmentById(R.layout.forgot_password_dialog);
 
@@ -115,27 +136,28 @@ public final class RequestForgotPasswordDialog extends DialogFragment {
 
 	@Override
 	public void onCancel(DialogInterface dialog) {
-		callback.onFail();
+		callback.onFail(this);
 	}
 
 	@Override
-	public Dialog onCreateDialog(final Bundle savedInstanceState) {
-		final FragmentActivity activity = (FragmentActivity) getActivity();
+	 public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-		final WalletApplication application = (WalletApplication) activity
-				.getApplication();
+		final WalletApplication application = (WalletApplication) getActivity().getApplication();
 
-		final LayoutInflater inflater = LayoutInflater.from(activity);
-
-		final Builder dialog = new AlertDialog.Builder(new ContextThemeWrapper(activity, R.style.Theme_Dialog));
-
-		dialog.setTitle(R.string.main_password_title);
+		getDialog().setTitle(R.string.main_password_title);
+		getDialog().getContext().setTheme(R.style.Theme_Dialog);
 
 		final View view = inflater.inflate(R.layout.forgot_password_dialog, null);
 
-		dialog.setView(view);
+		passwordField = (EditText) view.findViewById(R.id.password_field);
 
-		final TextView passwordField = (TextView) view.findViewById(R.id.password_field);
+		checkPasswordProgress = view.findViewById(R.id.checkPasswordProgress);
+		enterPasswordLayout = view.findViewById(R.id.enterPasswordLayout);
+		passwordField.requestFocus();
+		getDialog().getWindow().setSoftInputMode(
+				WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
+
 
 		final TextView titleTextView = (TextView) view.findViewById(R.id.title_text_view);
 
@@ -146,31 +168,33 @@ public final class RequestForgotPasswordDialog extends DialogFragment {
 
 		continueButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				
+				InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 				try {
 					if (passwordField.getText().toString().trim() == null || passwordField.getText().toString().trim().length() < 1) {
- 						callback.onFail();
+						callback.onFail(RequestForgotPasswordDialog.this);
 					}
-					
- 					String localWallet = application.readLocalWallet();
- 					if (!application.decryptLocalWallet(localWallet, passwordField.getText().toString().trim())) {
- 						callback.onFail();
- 						return;
- 					}
- 					
+
+					String localWallet = application.readLocalWallet();
+					if (!application.decryptLocalWallet(localWallet, passwordField.getText().toString().trim())) {
+						callback.onFail(RequestForgotPasswordDialog.this);
+						return;
+					}
+
 					String password = passwordField.getText().toString().trim();
 
+					showProgress(true);
 					application.checkIfWalletHasUpdatedAndFetchTransactions(password, new SuccessCallback() {
 						@Override
 						public void onSuccess() {
 							dismiss();
-							callback.onSuccess();
+							callback.onSuccess(RequestForgotPasswordDialog.this);
 						}
 
 						@Override
 						public void onFail() {
 							dismiss();
-							callback.onFail();
+							callback.onFail(RequestForgotPasswordDialog.this);
 						}
 					});
 				} catch (Exception e) {
@@ -185,22 +209,7 @@ public final class RequestForgotPasswordDialog extends DialogFragment {
 			}
 		});
 
-		Dialog d = dialog.create();
-
-		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-
-		lp.dimAmount = 0;
-		lp.width = WindowManager.LayoutParams.FILL_PARENT;
-		lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
-//		lp.gravity = Gravity.BOTTOM;
-		
-		d.show();
-
-		d.getWindow().setAttributes(lp);
-
-		d.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-		return d;
+		return view;
 	}
-	
+
 }

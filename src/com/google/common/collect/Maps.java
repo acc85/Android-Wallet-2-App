@@ -329,7 +329,7 @@ public final class Maps {
     Map<K, V> onlyOnLeft = newHashMap();
     Map<K, V> onlyOnRight = new HashMap<K, V>(right); // will whittle it down
     Map<K, V> onBoth = newHashMap();
-    Map<K, MapDifference.ValueDifference<V>> differences = newHashMap();
+    Map<K, ValueDifference<V>> differences = newHashMap();
     boolean eq = true;
 
     for (Entry<? extends K, ? extends V> entry : left.entrySet()) {
@@ -446,7 +446,7 @@ public final class Maps {
   }
 
   static class ValueDifferenceImpl<V>
-      implements MapDifference.ValueDifference<V> {
+      implements ValueDifference<V> {
     private final V left;
     private final V right;
 
@@ -470,9 +470,9 @@ public final class Maps {
     }
 
     @Override public boolean equals(@Nullable Object object) {
-      if (object instanceof MapDifference.ValueDifference) {
-        MapDifference.ValueDifference<?> that =
-            (MapDifference.ValueDifference<?>) object;
+      if (object instanceof ValueDifference) {
+        ValueDifference<?> that =
+            (ValueDifference<?>) object;
         return Objects.equal(this.left, that.leftValue())
             && Objects.equal(this.right, that.rightValue());
       }
@@ -516,7 +516,7 @@ public final class Maps {
     SortedMap<K, V> onlyOnRight = Maps.newTreeMap(comparator);
     onlyOnRight.putAll(right); // will whittle it down
     SortedMap<K, V> onBoth = Maps.newTreeMap(comparator);
-    SortedMap<K, MapDifference.ValueDifference<V>> differences =
+    SortedMap<K, ValueDifference<V>> differences =
         Maps.newTreeMap(comparator);
     boolean eq = true;
 
@@ -2712,7 +2712,7 @@ public final class Maps {
    */
   static <K, V> void putAllImpl(
       Map<K, V> self, Map<? extends K, ? extends V> map) {
-    for (Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
+    for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
       self.put(entry.getKey(), entry.getValue());
     }
   }

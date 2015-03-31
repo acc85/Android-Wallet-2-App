@@ -120,7 +120,7 @@ public abstract class ImmutableMultimap<K, V>
   }
 
   /**
-   * Multimap for {@link ImmutableMultimap.Builder} that maintains key and
+   * Multimap for {@link Builder} that maintains key and
    * value orderings, allows duplicate values, and performs better than
    * {@link LinkedListMultimap}.
    */
@@ -258,7 +258,7 @@ public abstract class ImmutableMultimap<K, V>
       }
       if (keyComparator != null) {
         Multimap<K, V> sortedCopy = new BuilderMultimap<K, V>();
-        List<Map.Entry<K, Collection<V>>> entries = Lists.newArrayList(
+        List<Entry<K, Collection<V>>> entries = Lists.newArrayList(
             builderMultimap.asMap().entrySet());
         Collections.sort(
             entries,
@@ -268,7 +268,7 @@ public abstract class ImmutableMultimap<K, V>
                 return entry.getKey();
               }
             }));
-        for (Map.Entry<K, Collection<V>> entry : entries) {
+        for (Entry<K, Collection<V>> entry : entries) {
           sortedCopy.putAll(entry.getKey(), entry.getValue());
         }
         builderMultimap = sortedCopy;
