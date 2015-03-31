@@ -260,23 +260,24 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close) {
 			public void onDrawerClosed(View view) {
 				invalidateOptionsMenu();
-				if(view.getTag() != null)
 				isDrawerOpen = false;
-				switch((int)view.getTag()){
-					case 2:
-						doMerchantDirectory();
-						break;
-					case 3:
-						doAddressBook();
-						break;
-					case 4:
-						doAddressBook();
-						break;
-					case 5:
-						doSettings();
-						break;
-					default:
-						break;
+				if(view.getTag() != null) {
+					switch ((int) view.getTag()) {
+						case 2:
+							doMerchantDirectory();
+							break;
+						case 3:
+							doAddressBook();
+							break;
+						case 4:
+							doAddressBook();
+							break;
+						case 5:
+							doSettings();
+							break;
+						default:
+							break;
+					}
 				}
 				view.setTag(null);
 			}
