@@ -65,6 +65,13 @@ public class TransactionAdapter extends BaseAdapter {
         this.myTransactions = myTransactions;
     }
 
+    public String getStrCurrentFiatCode() {
+        return strCurrentFiatCode;
+    }
+
+    public void setStrCurrentFiatCode(String strCurrentFiatCode) {
+        this.strCurrentFiatCode = strCurrentFiatCode;
+    }
 
     public boolean isBTC() {
         return isBTC;

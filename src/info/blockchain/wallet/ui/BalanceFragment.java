@@ -259,12 +259,14 @@ public class BalanceFragment extends Fragment   {
 		balanceExpandView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
 			@Override
 			public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-
 				return false;
 			}
 		});
+
+
 		transactionExpandableAdapter = new TransactionExpandableAdapter(getActivity());
 		balanceExpandView.setAdapter(transactionExpandableAdapter);
+		transactionExpandableAdapter.setIsBTC(isBTC);
 		balanceExpandView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
 			@Override
 			public boolean onChildClick(ExpandableListView expandableListView, View view, int i, int i1, long l) {
@@ -288,6 +290,8 @@ public class BalanceFragment extends Fragment   {
 
 		transactionAdapter = new TransactionAdapter(getActivity());
 		transactionListView.setAdapter(transactionAdapter);
+		transactionAdapter.setIsBTC(isBTC);
+		transactionAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
 
 		transactionListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
@@ -319,6 +323,7 @@ public class BalanceFragment extends Fragment   {
 				transactionAdapter.setMyTransactions(transactionsList);
 				transactionAdapter.setIsBTC(isBTC);
 				transactionAdapter.setLabelMap(labels);
+				transactionAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
 				new Handler(Looper.getMainLooper()).post(new Runnable() {
 					@Override
 					public void run() {
@@ -340,6 +345,9 @@ public class BalanceFragment extends Fragment   {
 						transactionObjects.addAll(walletObject.getWalletTransactions());
 					}
 					wallets = remoteWallet.getWalletAddressesAndBalanceAndWatchType();
+					transactionExpandableAdapter.setIsBTC(isBTC);
+					transactionExpandableAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
+					transactionExpandableAdapter.setStrCurrentFiatSymbol(BlockchainUtil.getInstance(getActivity()).getFiatSymbol());
 					transactionExpandableAdapter.setWallets(wallets);
 					for (WalletObject wallet : wallets) {
 						for (Object object : wallet.getWalletTransactions()) {
@@ -417,6 +425,7 @@ public class BalanceFragment extends Fragment   {
 		}
         BlockchainUtil.getInstance(getActivity());
 		updateLists();
+		setCurrencySymbol();
     	System.gc();
 
     }
@@ -476,13 +485,31 @@ public class BalanceFragment extends Fragment   {
 		return false;
     }
 
+	public void setCurrencySymbol(){
+		strCurrentFiatCode = BlockchainUtil.getInstance(getActivity()).getFiatCode();
+		strCurrentFiatSymbol = BlockchainUtil.getInstance(getActivity()).getFiatSymbol();
+		if(isBTC) {
+			tViewCurrencySymbol.setText(Character.toString((char) TypefaceUtil.getInstance(getActivity()).getBTCSymbol()));
+			String tmp = tViewAmount1.getText().toString();
+			tViewAmount1.setText(tViewAmount2.getText().toString().substring(1));
+			tViewAmount2.setText(strCurrentFiatSymbol + tmp);
+		}
+		else {
+			tViewCurrencySymbol.setText(strCurrentFiatSymbol);
+			String tmp = tViewAmount1.getText().toString();
+			tViewAmount1.setText(tViewAmount2.getText().toString().substring(1));
+			tViewAmount2.setTypeface(TypefaceUtil.getInstance(getActivity()).getBTCTypeface());
+			tViewAmount2.setText(Character.toString((char)TypefaceUtil.getInstance(getActivity()).getBTCSymbol()) + tmp);
+		}
+	}
+
     public void currencyToggle() {
     	if(isBTC) {
     		tViewCurrencySymbol.setText(strCurrentFiatSymbol);
     		String tmp = tViewAmount1.getText().toString(); 
     		tViewAmount1.setText(tViewAmount2.getText().toString().substring(1));
     		tViewAmount2.setTypeface(TypefaceUtil.getInstance(getActivity()).getBTCTypeface());
-            tViewAmount2.setText(Character.toString((char)TypefaceUtil.getInstance(getActivity()).getBTCSymbol()) + tmp);
+            tViewAmount2.setText(Character.toString((char) TypefaceUtil.getInstance(getActivity()).getBTCSymbol()) + tmp);
     	}
     	else {
             tViewCurrencySymbol.setText(Character.toString((char)TypefaceUtil.getInstance(getActivity()).getBTCSymbol()));

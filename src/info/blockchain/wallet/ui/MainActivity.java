@@ -270,7 +270,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 							doAddressBook();
 							break;
 						case 4:
-							doAddressBook();
+							doExchangeRates();
 							break;
 						case 5:
 							doSettings();

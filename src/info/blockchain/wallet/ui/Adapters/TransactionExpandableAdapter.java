@@ -69,6 +69,26 @@ public class TransactionExpandableAdapter extends BaseExpandableListAdapter {
         this.activeAddresses = activeAddresses;
     }
 
+    public boolean isBTC() {
+        return isBTC;
+    }
+
+    public String getStrCurrentFiatCode() {
+        return strCurrentFiatCode;
+    }
+
+    public void setStrCurrentFiatCode(String strCurrentFiatCode) {
+        this.strCurrentFiatCode = strCurrentFiatCode;
+    }
+
+    public String getStrCurrentFiatSymbol() {
+        return strCurrentFiatSymbol;
+    }
+
+    public void setStrCurrentFiatSymbol(String strCurrentFiatSymbol) {
+        this.strCurrentFiatSymbol = strCurrentFiatSymbol;
+    }
+
     public List<WalletObject> getWallets() {
         return wallets;
     }
