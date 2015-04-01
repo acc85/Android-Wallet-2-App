@@ -376,7 +376,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		application.setIsPassedPinScreen(true);
 
 		if(TimeOutUtil.getInstance().isTimedOut()) {
-        	Intent intent = new Intent(MainActivity.this, PinActivity.class);
+        	Intent intent = new Intent(MainActivity.this, StartActivity.class);
 			String navigateTo = getIntent().getStringExtra("navigateTo");
 			intent.putExtra("navigateTo", navigateTo);   
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);

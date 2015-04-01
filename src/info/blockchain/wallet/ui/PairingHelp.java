@@ -12,6 +12,8 @@ import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.android.gcm.GCMRegistrar;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,13 +24,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
+import android.support.v4.app.FragmentActivity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.Display;
 import android.view.View.OnTouchListener;
+import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.graphics.Point;
 import android.graphics.BitmapFactory;
@@ -45,7 +52,7 @@ import piuk.blockchain.android.SuccessCallback;
 import piuk.blockchain.android.WalletApplication;
 import piuk.blockchain.android.util.ConnectivityStatus;
 
-public class PairingHelp extends Activity {
+public class PairingHelp extends FragmentActivity {
 	
 	private TextView tvHeader = null;
 	private TextView tvFooter1 = null;
@@ -55,8 +62,16 @@ public class PairingHelp extends Activity {
 	private TextView tvBack = null;
 	private TextView tvNext = null;
 	private ImageView ivImage = null;
-	private LinearLayout layoutScan = null;
+	private RelativeLayout layoutScan = null;
 	private LinearLayout layoutManual = null;
+	private static int LEFT = 0;
+	private static int RIGHT = 1;
+	private int fragmentContainerHeight;
+	PairingHelpStageOneFragment fragment;
+	private static String HELP_STAGE_ONE_FRAGMENT = "help_stage_one_fragment";
+	private static String HELP_STAGE_TWO_FRAGMENT = "help_stage_two_fragment";
+	private static String HELP_STAGE_THREE_FRAGMENT = "help_stage_three_fragment";
+	int stage;
 	
 	private int level = 0;
 
@@ -67,69 +82,70 @@ public class PairingHelp extends Activity {
 		super.onCreate(savedInstanceState);
 
 	    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-//	    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_pairing_help);
 
 	    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-	    
         Bundle extras = getIntent().getExtras();
         if(extras != null)	{
-        	level = extras.getInt("level");
+			if(extras.containsKey("STAGE"))
+				stage = extras.getInt("STAGE");
         }
 
-		layoutScan = (LinearLayout)findViewById(R.id.scan);
+
+		layoutScan = (RelativeLayout)findViewById(R.id.scan);
 		layoutScan.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View arg0, MotionEvent arg1) {
-        		Intent intent = new Intent(PairingHelp.this, ZBarScannerActivity.class);
-        		intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{ Symbol.QRCODE } );
-        		startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
-                return false;
-            }
-        });
+			@Override
+			public boolean onTouch(View arg0, MotionEvent arg1) {
+				Intent intent = new Intent(PairingHelp.this, ZBarScannerActivity.class);
+				intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{Symbol.QRCODE});
+				startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+				return false;
+			}
+		});
 
-		layoutManual = (LinearLayout)findViewById(R.id.manual);
-		layoutManual.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View arg0, MotionEvent arg1) {
-         	 	Intent intent = new Intent(PairingHelp.this, ManualPairing.class);
-//         	 	startActivityForResult(intent, MANUAL_PAIRING);            	
-         	 	startActivity(intent);            	
-                return false;
-            }
-        });
-		layoutManual.setVisibility(View.INVISIBLE);
+		final FrameLayout helpContainer = (FrameLayout)findViewById(R.id.helpContainer);
+		helpContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+			@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+			@Override
+			public void onGlobalLayout() {
+				if(Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
+					helpContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				else
+					helpContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+				fragmentContainerHeight = helpContainer.getHeight();
+			}
+		});
+		tvHeader = (TextView)findViewById(R.id.header);
 
+		tvHeader.setTypeface(TypefaceUtil.getInstance(this).getGravityLightTypeface());
 		tvBack = (TextView)findViewById(R.id.back);
-		tvBack = (TextView)findViewById(R.id.back);
-		tvBack.setText("<");
-		tvBack.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View arg0, MotionEvent arg1) {
-            	level--;
-            	if(level < 0) {
-            		level = 0;
-            	}
-        		updateDisplay();
-        		return false;
-            }
-        });
+		tvBack.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if(stage-1 >= 0)
+					displayHelpFragment(stage-1,LEFT);
+			}
+		});
 
 		tvNext = (TextView)findViewById(R.id.next);
-		tvNext.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View arg0, MotionEvent arg1) {
-            	level++;
-            	if(level > 2) {
-            		level = 2;
-            	}
-        		updateDisplay();
-        		return false;
-            }
-        });
 
-		updateDisplay();
-		
+		tvNext.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				if (stage + 1 <= 3)
+					displayHelpFragment(stage + 1, RIGHT);
+			}
+		});
+
+
+		if(stage == 0)
+			displayStartHelpFragment(1);
+		else{
+			displayStartHelpFragment(stage);
+		}
+
+
 		if(ConnectivityStatus.hasConnectivity(this)) {
 			CurrencyExchange.getInstance(this).localUpdate();
 			ExchangeRates fxRates = new ExchangeRates();
@@ -140,6 +156,88 @@ public class PairingHelp extends Activity {
 	}
 
 	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		outState.putInt("STAGE",stage);
+		super.onSaveInstanceState(outState);
+	}
+
+	public void displayStartHelpFragment(int stage){
+		switch(stage) {
+			case 1:
+				tvBack.setVisibility(View.INVISIBLE);
+				PairingHelpStageOneFragment stageOne = new PairingHelpStageOneFragment();
+				this.stage = 1;
+				getSupportFragmentManager().beginTransaction()
+						.replace(R.id.helpContainer, stageOne, HELP_STAGE_ONE_FRAGMENT)
+						.commit();
+				break;
+			case 2:
+				tvBack.setVisibility(View.VISIBLE);
+				tvNext.setVisibility(View.VISIBLE);
+				PairingHelpStageTwoFragment stageTwo = new PairingHelpStageTwoFragment();
+				this.stage = 2;
+				getSupportFragmentManager().beginTransaction()
+						.replace(R.id.helpContainer, stageTwo, HELP_STAGE_TWO_FRAGMENT)
+						.commit();
+				break;
+			case 3:
+				tvNext.setVisibility(View.INVISIBLE);
+				PairingHelpStageThreeFragment stageThree = new PairingHelpStageThreeFragment();
+				this.stage = 3;
+				getSupportFragmentManager().beginTransaction()
+						.replace(R.id.helpContainer, stageThree, HELP_STAGE_THREE_FRAGMENT)
+						.commit();
+				break;
+		}
+	}
+
+	public void displayHelpFragment(int stage, int direction){
+		int animateOutCurrentFragment = 0;
+		int animateInNewFragment = 0;
+		switch(direction){
+			case 0:
+				animateOutCurrentFragment = R.anim.slide_alpha_out_from_left_to_right;
+				animateInNewFragment = R.anim.slide_alpha_in_from_left_to_right;
+				break;
+			case 1:
+				animateOutCurrentFragment = R.anim.slide_alpha_out_from_right_to_left;
+				animateInNewFragment = R.anim.slide_alpha_in_from_right_to_left;
+				break;
+
+		}
+		switch(stage){
+			case 1:
+				tvBack.setVisibility(View.INVISIBLE);
+				PairingHelpStageOneFragment stageOne = new PairingHelpStageOneFragment();
+				this.stage = 1;
+				getSupportFragmentManager().beginTransaction()
+						.setCustomAnimations(animateInNewFragment, animateOutCurrentFragment)
+						.replace(R.id.helpContainer, stageOne, HELP_STAGE_ONE_FRAGMENT)
+						.commit();
+				break;
+			case 2:
+				tvBack.setVisibility(View.VISIBLE);
+				tvNext.setVisibility(View.VISIBLE);
+				PairingHelpStageTwoFragment stageTwo = new PairingHelpStageTwoFragment();
+				this.stage = 2;
+				getSupportFragmentManager().beginTransaction()
+						.setCustomAnimations(animateInNewFragment,animateOutCurrentFragment)
+						.replace(R.id.helpContainer, stageTwo, HELP_STAGE_TWO_FRAGMENT)
+						.commit();
+				break;
+			case 3:
+				tvNext.setVisibility(View.INVISIBLE);
+				PairingHelpStageThreeFragment stageThree = new PairingHelpStageThreeFragment();
+				this.stage = 3;
+				getSupportFragmentManager().beginTransaction()
+						.setCustomAnimations(animateInNewFragment, animateOutCurrentFragment)
+						.replace(R.id.helpContainer, stageThree, HELP_STAGE_THREE_FRAGMENT)
+						.commit();
+				break;
+		}
+	}
+
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 		if(resultCode == Activity.RESULT_OK && requestCode == ZBAR_SCANNER_REQUEST)	{
@@ -147,9 +245,6 @@ public class PairingHelp extends Activity {
 				String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT);
 	        	handleQRCode(strResult);
 			}
-        }
-        else {
-        	;
         }
 
 	}
@@ -248,7 +343,8 @@ public class PairingHelp extends Activity {
 
 //								        	Intent intent = new Intent(PairingHelp.this, PinEntryActivity.class);
 //								        	intent.putExtra("S", "1");
-											Intent intent = new Intent(PairingHelp.this, PinActivity.class);
+//											Intent intent = new Intent(PairingHelp.this, PinActivity.class);
+											Intent intent = new Intent(PairingHelp.this, StartActivity.class);
 											intent.putExtra("S", "1");
 											intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 								    		startActivity(intent);
@@ -296,67 +392,6 @@ public class PairingHelp extends Activity {
 		}
 		
 	}
-	
-	public void updateDisplay()	{
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int width = size.x;
-//        int height = size.y;
-
-		ivImage = (ImageView)findViewById(R.id.img);
-	    if(level == 2)	{
-	    	ivImage.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.pairing3, width - 50, (int)(width * 0.75)));
-	    }
-	    else if(level == 1)	{
-	    	ivImage.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.pairing2, width - 50, (int)(width * 0.75)));
-	    }
-	    else	{
-	    	ivImage.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.pairing1, width - 50, (int)(width * 0.75)));
-	    }
-	    
-		if(level == 0) {
-			tvBack.setVisibility(View.INVISIBLE);
-		}
-		else {
-			tvBack.setVisibility(View.VISIBLE);
-			tvBack.setText("<");
-		}
-
-		if(level == 2) {
-			tvNext.setVisibility(View.INVISIBLE);
-		}
-		else {
-			tvNext.setVisibility(View.VISIBLE);
-			tvNext.setText(">");
-		}
-
-		tvHeader = (TextView)findViewById(R.id.header);
-		tvHeader.setTypeface(TypefaceUtil.getInstance(this).getGravityLightTypeface());
-		tvHeader.setText(R.string.connect_existing_wallet);
-
-		tvFooter1 = (TextView)findViewById(R.id.footer1);
-		tvFooter1.setText(R.string.SCAN_CODE);
-		tvFooter2 = (TextView)findViewById(R.id.footer2);
-		tvFooter2.setText(R.string.MANUAL_PAIR);
-		
-		tvWarning1 = (TextView)findViewById(R.id.warning1);
-		tvWarning2 = (TextView)findViewById(R.id.warning2);
-		tvWarning2.setTextColor(0xFF039BD3);
-	    if(level == 2)	{
-			tvWarning1.setText(R.string.step_3);
-			tvWarning2.setText(R.string.step_3_text);
-	    }
-	    else if(level == 1)	{
-			tvWarning1.setText(R.string.step_2);
-			tvWarning2.setText(R.string.step_2_text);
-	    }
-	    else	{
-			tvWarning1.setText(R.string.step_1);
-			tvWarning2.setText(R.string.step_1_text);
-	    }
-	}
-
 	public int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
 
 	    final int height = options.outHeight;
@@ -385,6 +420,7 @@ public class PairingHelp extends Activity {
 	    options.inJustDecodeBounds = false;
 
 	    return BitmapFactory.decodeResource(res, resId, options);
-	} 
+	}
+
 
 }

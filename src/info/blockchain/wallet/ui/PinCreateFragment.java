@@ -601,7 +601,8 @@ public class PinCreateFragment extends Fragment {
                     final String key = new String(Hex.encode(bytes), "UTF-8");
                     random.nextBytes(bytes);
                     final String value = new String(Hex.encode(bytes), "UTF-8");
-                    final JSONObject response = ((PinActivity)getActivity()).apiStoreKey(key, value, userInput);
+//                    final JSONObject response = ((PinActivity)getActivity()).apiStoreKey(key, value, userInput);
+                    final JSONObject response = ((StartActivity)getActivity()).apiStoreKey(key, value, userInput);
                     if (response.get("success") != null) {
 
                         edit.putString("pin_kookup_key", key);

@@ -70,16 +70,16 @@ public class PinActivity extends FragmentActivity {
         if(extras!= null){
             if (extras.getString("S") != null && extras.getString("S").equals("1")) {
                 getSupportFragmentManager().beginTransaction()
-                        .add(R.id.pinFragmentContainer, new PinCreateFragment(), PIN_CREATE_FRAGMENT_NAME)
+                        .add(R.id.startFragmentContainer, new PinCreateFragment(), PIN_CREATE_FRAGMENT_NAME)
                         .commit();
             }else{
                 getSupportFragmentManager().beginTransaction()
-                        .add(R.id.pinFragmentContainer, new PinEntryFragment(), PIN_ENTRY_FRAGMENT_NAME)
+                        .add(R.id.startFragmentContainer, new PinEntryFragment(), PIN_ENTRY_FRAGMENT_NAME)
                         .commit();
             }
         }else{
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.pinFragmentContainer, new PinEntryFragment(), PIN_ENTRY_FRAGMENT_NAME)
+                    .add(R.id.startFragmentContainer, new PinEntryFragment(), PIN_ENTRY_FRAGMENT_NAME)
                     .commit();
         }
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -137,7 +137,7 @@ public class PinActivity extends FragmentActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 getSupportFragmentManager().beginTransaction()
-                                        .replace(R.id.pinFragmentContainer, new PinCreateFragment(), PIN_CREATE_FRAGMENT_NAME)
+                                        .replace(R.id.startFragmentContainer, new PinCreateFragment(), PIN_CREATE_FRAGMENT_NAME)
                                         .commit();
                             }
                         }).show();

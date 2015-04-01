@@ -98,7 +98,7 @@ public class PinEntryFragment extends Fragment {
         buttonForgot = (Button) view.findViewById(R.id.buttonForgot);
         buttonForgot.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                ((PinActivity)getActivity()).requestPassword();
+                ((StartActivity)getActivity()).requestPassword();
             }
         });
         buttonForgot.setTypeface(typeface);
@@ -183,7 +183,7 @@ public class PinEntryFragment extends Fragment {
                                                 final String key = new String(Hex.encode(bytes), "UTF-8");
                                                 random.nextBytes(bytes);
                                                 final String value = new String(Hex.encode(bytes), "UTF-8");
-                                                final JSONObject response = ((PinActivity)getActivity()).apiStoreKey(key, value, userInput);
+                                                final JSONObject response = ((StartActivity)getActivity()).apiStoreKey(key, value, userInput);
                                                 Toast.makeText(application, response.toString(), Toast.LENGTH_LONG).show();
                                                 Toast.makeText(getActivity(), "PIN saved", Toast.LENGTH_SHORT).show();
                                                 Intent intent = new Intent(getActivity(), MainActivity.class);
@@ -588,7 +588,7 @@ public class PinEntryFragment extends Fragment {
                 JSONObject response = null;
                 String decryptionKey = null;
                 try {
-                    response = ((PinActivity) getActivity()).apiGetValue(pin_lookup_key, PIN);
+                    response = ((StartActivity) getActivity()).apiGetValue(pin_lookup_key, PIN);
                     decryptionKey = (String) response.get("success");
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -599,7 +599,7 @@ public class PinEntryFragment extends Fragment {
                     application.setTemporyPIN(PIN);
                     application.didEncounterFatalPINServerError = false;
 
-                    String password = ((PinActivity) getActivity()).decrypt(encrypted_password, decryptionKey, PIN);
+                    String password = ((StartActivity) getActivity()).decrypt(encrypted_password, decryptionKey, PIN);
 
                     application.checkIfWalletHasUpdatedAndFetchTransactions(password, new SuccessCallback() {
                         @Override
@@ -664,7 +664,7 @@ public class PinEntryFragment extends Fragment {
                         System.out.println("codeTries:" + codeTries);
                         if (codeTries == 1) {
                             try {
-                                ((PinActivity) getActivity()).clearPrefValues(application);
+                                ((StartActivity) getActivity()).clearPrefValues(application);
                                 throw new Exception("Fatal PIN Server Error");
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -731,7 +731,7 @@ public class PinEntryFragment extends Fragment {
                     builder.setPositiveButton(R.string.pin_server_error_enter_password_manually, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             dialog.dismiss();
-                            ((PinActivity)getActivity()).requestPassword();
+                            ((StartActivity)getActivity()).requestPassword();
                         }
                     });
                     AlertDialog dialog = builder.create();
