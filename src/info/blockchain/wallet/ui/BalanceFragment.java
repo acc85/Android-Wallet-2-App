@@ -209,8 +209,12 @@ public class BalanceFragment extends Fragment   {
 				Editor edit = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
 				edit.putBoolean("defaultTxView", true);
 				edit.commit();
-        		setExandableList();
-                return false;
+				try {
+					setExandableList();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return false;
             }
         });
 
@@ -227,7 +231,7 @@ public class BalanceFragment extends Fragment   {
 				edit.putBoolean("defaultTxView", false);
 				edit.commit();
 				setTranactionList();
-                return false;
+				return false;
             }
         });
 
@@ -286,7 +290,7 @@ public class BalanceFragment extends Fragment   {
 				return false;
 			}
 		});
-		setExandableList();
+			setExandableList();
 
 		transactionAdapter = new TransactionAdapter(getActivity());
 		transactionListView.setAdapter(transactionAdapter);
@@ -318,18 +322,22 @@ public class BalanceFragment extends Fragment   {
 		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
-				final List<MyTransaction> transactionsList = remoteWallet.getTransactions();
-				labels = remoteWallet.getLabelMap();
-				transactionAdapter.setMyTransactions(transactionsList);
-				transactionAdapter.setIsBTC(isBTC);
-				transactionAdapter.setLabelMap(labels);
-				transactionAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
-				new Handler(Looper.getMainLooper()).post(new Runnable() {
-					@Override
-					public void run() {
-						transactionAdapter.notifyDataSetChanged();
-					}
-				});
+				try {
+					final List<MyTransaction> transactionsList = remoteWallet.getTransactions();
+					labels = remoteWallet.getLabelMap();
+					transactionAdapter.setMyTransactions(transactionsList);
+					transactionAdapter.setIsBTC(isBTC);
+					transactionAdapter.setLabelMap(labels);
+					transactionAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
+					new Handler(Looper.getMainLooper()).post(new Runnable() {
+						@Override
+						public void run() {
+							transactionAdapter.notifyDataSetChanged();
+						}
+					});
+				}catch(Exception e){
+					e.printStackTrace();
+				}
 			}
 		});
 
