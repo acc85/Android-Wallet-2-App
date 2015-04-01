@@ -490,16 +490,13 @@ public class BalanceFragment extends Fragment   {
 		strCurrentFiatSymbol = BlockchainUtil.getInstance(getActivity()).getFiatSymbol();
 		if(isBTC) {
 			tViewCurrencySymbol.setText(Character.toString((char) TypefaceUtil.getInstance(getActivity()).getBTCSymbol()));
-			String tmp = tViewAmount1.getText().toString();
-			tViewAmount1.setText(tViewAmount2.getText().toString().substring(1));
-			tViewAmount2.setText(strCurrentFiatSymbol + tmp);
+			tViewAmount1.setText(BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
+			tViewAmount2.setText(strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance())));
 		}
 		else {
 			tViewCurrencySymbol.setText(strCurrentFiatSymbol);
-			String tmp = tViewAmount1.getText().toString();
-			tViewAmount1.setText(tViewAmount2.getText().toString().substring(1));
-			tViewAmount2.setTypeface(TypefaceUtil.getInstance(getActivity()).getBTCTypeface());
-			tViewAmount2.setText(Character.toString((char)TypefaceUtil.getInstance(getActivity()).getBTCSymbol()) + tmp);
+			tViewAmount1.setText(BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance())));
+			tViewAmount2.setText(Character.toString((char) TypefaceUtil.getInstance(getActivity()).getBTCSymbol()) + BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
 		}
 	}
 
