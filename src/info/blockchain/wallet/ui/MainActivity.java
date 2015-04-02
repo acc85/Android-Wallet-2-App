@@ -38,6 +38,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ImageView;
 import android.support.v4.content.LocalBroadcastManager;
@@ -388,7 +389,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		}
 
 	}
-	
+
+
+
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
