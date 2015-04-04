@@ -64,6 +64,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.android.Contents;
 import com.google.zxing.client.android.encode.QRCodeEncoder;
 
+import org.json.JSONException;
+
 public class ReceiveFragment extends Fragment   {
 
 	private boolean addressesOn = true;
@@ -138,9 +140,13 @@ public class ReceiveFragment extends Fragment   {
 //        tvAddressBis.setVisibility(View.INVISIBLE);
 
 	    magicData =  new ArrayList<HashMap<String,String>>();
-        initMagicList();
+		try {
+			initMagicList();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 
-        ivReceivingQR = (ImageView)rootView.findViewById(R.id.qr);
+		ivReceivingQR = (ImageView)rootView.findViewById(R.id.qr);
 //        ivReceivingQR.setVisibility(View.INVISIBLE);
         ivReceivingQR.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -519,8 +525,12 @@ public class ReceiveFragment extends Fragment   {
 		        	}
 
 		        	if(isMagic) {
-		        		removeMagicList();
-		        	}
+						try {
+							removeMagicList();
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
 
 		            icon_row.setVisibility(View.INVISIBLE);
 
@@ -569,8 +579,12 @@ public class ReceiveFragment extends Fragment   {
                 		displayMagicList();
                 	}
                 	else {
-                		removeMagicList();
-                	}
+						try {
+							removeMagicList();
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
 
               		break;
               	}
@@ -787,7 +801,7 @@ public class ReceiveFragment extends Fragment   {
 
     }
 
-    private void initMagicList() {
+    private void initMagicList() throws JSONException {
     	
 //		final WalletApplication application = (WalletApplication)getActivity().getApplication();
 //		MyRemoteWallet wallet = application.getRemoteWallet();
@@ -969,8 +983,12 @@ public class ReceiveFragment extends Fragment   {
 //            			layoutContacts.setBackgroundColor(color_contacts_unselected);
 //            			tvContacts.setTextColor(0xFF000000);
             		}
-            		initMagicList();
-            		adapter.notifyDataSetChanged();                            		
+				try {
+					initMagicList();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				adapter.notifyDataSetChanged();
                 }
         });
         /*
@@ -1050,9 +1068,13 @@ public class ReceiveFragment extends Fragment   {
                 imm.hideSoftInputFromWindow(edAddress.getWindowToken(), 0);
 
 				ivReceivingQR.setVisibility(View.VISIBLE);
-				ivReceivingQR.setImageBitmap(generateQRCode(BitcoinURI.convertToBitcoinURI(currentSelectedAddress, null, "", "")));		        		
-                removeMagicList();
-                edAmount1.requestFocus();
+				ivReceivingQR.setImageBitmap(generateQRCode(BitcoinURI.convertToBitcoinURI(currentSelectedAddress, null, "", "")));
+				try {
+					removeMagicList();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				edAmount1.requestFocus();
                 edAmount1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
@@ -1072,7 +1094,7 @@ public class ReceiveFragment extends Fragment   {
         magicList.setAdapter(adapter);
     }
 
-    private void removeMagicList() {
+    private void removeMagicList() throws JSONException {
 		isMagic = false;
 
 		tvCurrency.setBackgroundColor(Color.WHITE);

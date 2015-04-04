@@ -433,8 +433,12 @@ public class BalanceFragment extends Fragment   {
 		}
         BlockchainUtil.getInstance(getActivity());
 		updateLists();
-		setCurrencySymbol();
-    	System.gc();
+		try {
+			setCurrencySymbol();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.gc();
 
     }
 
@@ -493,7 +497,7 @@ public class BalanceFragment extends Fragment   {
 		return false;
     }
 
-	public void setCurrencySymbol(){
+	public void setCurrencySymbol() throws Exception{
 		strCurrentFiatCode = BlockchainUtil.getInstance(getActivity()).getFiatCode();
 		strCurrentFiatSymbol = BlockchainUtil.getInstance(getActivity()).getFiatSymbol();
 		if(isBTC) {

@@ -410,7 +410,7 @@
     <string name="step_2_text">On your wallet homepage click the Account Settings button</string>
     <string name="step_3_text">Select \'Devices\' on the left menu of the settings page and click \'Show/Hide Pairing Code\'</string>
     
-    <string name="connect_existing_wallet">connect an existing wallet</string>
+    <string name="connect_existing_wallet">Connect an existing wallet</string>
     <string name="SCAN_CODE">SCAN PAIRING CODE</string>
     <string name="MANUAL_PAIR">PAIR DEVICE MANUALLY</string>
     
@@ -418,7 +418,9 @@
     <string name="invalid_server_reponse">Invalid server response</string>
     <string name="fatal_pin_error">Fatal PIN server error</string>
 
-    <string name="create_new_wallet">create new wallet</string>
+    <string name="create_new_wallet">Create new wallet</string>
+
+
     <string name="accept_tos">By tapping on \'ACCEPT\', you acknowledge that you are accepting Blockchain\'s terms of service: https://blockchain.info</string>
     <string name="set_your_pin">Set your pin code</string>
     <string name="set_your_pin2">Enter a 4-digit code that will be easy for you to remember but not easily guessed by anyone else.</string>

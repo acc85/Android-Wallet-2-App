@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+    <TextView
+        android:id="@+id/warning2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:textAlignment="gravity"
+        android:text="@string/set_your_pin2"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="10dp" />
+    <LinearLayout
+        android:layout_below="@+id/warning2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal|center_vertical"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:background="#FFffffff"
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:paddingTop="20dp">
+        <EditText
+            android:id="@+id/pin1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#FF000000"
+            android:textStyle="italic"
+            android:textCursorDrawable="@null"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:maxLength="1"
+            android:password="true"
+            android:inputType="number"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal" />
+
+        <EditText
+            android:id="@+id/pin2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#FF000000"
+            android:textStyle="italic"
+            android:textCursorDrawable="@null"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:maxLength="1"
+            android:password="true"
+            android:inputType="number"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal" />
+
+        <EditText
+            android:id="@+id/pin3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#FF000000"
+            android:textStyle="italic"
+            android:textCursorDrawable="@null"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:maxLength="1"
+            android:password="true"
+            android:inputType="number"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal" />
+
+        <EditText
+            android:id="@+id/pin4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textColor="#FF000000"
+            android:textStyle="italic"
+            android:textCursorDrawable="@null"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:maxLength="1"
+            android:password="true"
+            android:inputType="number"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+</RelativeLayout>

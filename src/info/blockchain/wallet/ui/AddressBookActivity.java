@@ -52,6 +52,8 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Toast;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+
+import org.json.JSONException;
 //import android.util.Log;
 
 
@@ -823,8 +825,13 @@ public class AddressBookActivity extends Activity  {
 	        if (displayedAddresses == DisplayedAddresses.ActiveAddresses || displayedAddresses == DisplayedAddresses.ArchivedAddresses) {
 	        	
             	String amount = "0.000";
-    	    	BigInteger balance = addressManager.getBalance(addr);
-    		    if (balance != null) {
+				BigInteger balance = null;
+				try {
+					balance = addressManager.getBalance(addr);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				if (balance != null) {
     		    	amount = BlockchainUtil.formatBitcoin(balance) + " BTC";
         		    ((TextView)view.findViewById(R.id.txt3)).setText(amount);
     		    }

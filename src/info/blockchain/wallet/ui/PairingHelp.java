@@ -13,6 +13,7 @@ import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.android.gcm.GCMRegistrar;
 
 import android.annotation.TargetApi;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,19 +26,19 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
-import android.view.Display;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.graphics.Point;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
 import android.widget.Toast;
@@ -52,25 +53,20 @@ import piuk.blockchain.android.SuccessCallback;
 import piuk.blockchain.android.WalletApplication;
 import piuk.blockchain.android.util.ConnectivityStatus;
 
-public class PairingHelp extends FragmentActivity {
+public class PairingHelp extends ActionBarActivity {
 	
 	private TextView tvHeader = null;
-	private TextView tvFooter1 = null;
-	private TextView tvFooter2 = null;
-	private TextView tvWarning1 = null;
-	private TextView tvWarning2 = null;
 	private TextView tvBack = null;
 	private TextView tvNext = null;
-	private ImageView ivImage = null;
-	private RelativeLayout layoutScan = null;
+	private ViewGroup layoutScan = null;
 	private LinearLayout layoutManual = null;
 	private static int LEFT = 0;
 	private static int RIGHT = 1;
-	private int fragmentContainerHeight;
 	PairingHelpStageOneFragment fragment;
 	private static String HELP_STAGE_ONE_FRAGMENT = "help_stage_one_fragment";
 	private static String HELP_STAGE_TWO_FRAGMENT = "help_stage_two_fragment";
 	private static String HELP_STAGE_THREE_FRAGMENT = "help_stage_three_fragment";
+	private Toolbar toolbar;
 	int stage;
 	
 	private int level = 0;
@@ -79,9 +75,9 @@ public class PairingHelp extends FragmentActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
 		super.onCreate(savedInstanceState);
 
-	    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 	    this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_pairing_help);
 
@@ -92,15 +88,20 @@ public class PairingHelp extends FragmentActivity {
 				stage = extras.getInt("STAGE");
         }
 
+		toolbar = (Toolbar)findViewById(R.id.pairingHelpToolbar);
+		setSupportActionBar(toolbar);
+		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-		layoutScan = (RelativeLayout)findViewById(R.id.scan);
-		layoutScan.setOnTouchListener(new OnTouchListener() {
+
+
+		layoutScan = (ViewGroup)findViewById(R.id.scan);
+		layoutScan.setOnClickListener(new View.OnClickListener() {
 			@Override
-			public boolean onTouch(View arg0, MotionEvent arg1) {
+			public void onClick(View view) {
 				Intent intent = new Intent(PairingHelp.this, ZBarScannerActivity.class);
 				intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{Symbol.QRCODE});
 				startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
-				return false;
 			}
 		});
 
@@ -113,12 +114,11 @@ public class PairingHelp extends FragmentActivity {
 					helpContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 				else
 					helpContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-				fragmentContainerHeight = helpContainer.getHeight();
 			}
 		});
 		tvHeader = (TextView)findViewById(R.id.header);
-
 		tvHeader.setTypeface(TypefaceUtil.getInstance(this).getGravityLightTypeface());
+
 		tvBack = (TextView)findViewById(R.id.back);
 		tvBack.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -221,7 +221,7 @@ public class PairingHelp extends FragmentActivity {
 				PairingHelpStageTwoFragment stageTwo = new PairingHelpStageTwoFragment();
 				this.stage = 2;
 				getSupportFragmentManager().beginTransaction()
-						.setCustomAnimations(animateInNewFragment,animateOutCurrentFragment)
+						.setCustomAnimations(animateInNewFragment, animateOutCurrentFragment)
 						.replace(R.id.helpContainer, stageTwo, HELP_STAGE_TWO_FRAGMENT)
 						.commit();
 				break;
@@ -256,142 +256,130 @@ public class PairingHelp extends FragmentActivity {
 			if (raw_code == null || raw_code.length() == 0) {
 				throw new Exception("Invalid Pairing QR Code");
 			}
-
 			if (raw_code.charAt(0) != '1') {
 				throw new Exception("Invalid Pairing Version Code " + raw_code.charAt(0));
 			}
 
-			final Handler handler = new Handler();
+			String[] components = raw_code.split("\\|", Pattern.LITERAL);
 
-			{
-				String[] components = raw_code.split("\\|", Pattern.LITERAL);
+			if (components.length < 3) {
+				throw new Exception("Invalid Pairing QR Code. Not enough components.");
+			}
 
-				if (components.length < 3) {
-					throw new Exception("Invalid Pairing QR Code. Not enough components.");
-				}
+			final String guid = components[1];
+			if (guid.length() != 36) {
+				throw new Exception("Invalid Pairing QR Code. GUID wrong length.");
+			}
 
-				final String guid = components[1];
-				if (guid.length() != 36) {
-					throw new Exception("Invalid Pairing QR Code. GUID wrong length.");
-				}
+			final String encrypted_data = components[2];
 
-				final String encrypted_data = components[2];
+			AsyncTask.execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						String temp_password = MyRemoteWallet.getPairingEncryptionPassword(guid);
 
-				new Thread(new Runnable() {
+						String decrypted = MyWallet.decrypt(encrypted_data, temp_password, 10);
 
-					@Override
-					public void run() {
-						
-						Looper.prepare();
+						String[] sharedKeyAndPassword = decrypted.split("\\|", Pattern.LITERAL);
 
-						try {
-							String temp_password = MyRemoteWallet.getPairingEncryptionPassword(guid);
+						if (sharedKeyAndPassword.length < 2) {
+							throw new Exception("Invalid Pairing QR Code. sharedKeyAndPassword Incorrect number of components.");
+						}
 
-							String decrypted = MyWallet.decrypt(encrypted_data, temp_password, 10);
+						final String sharedKey = sharedKeyAndPassword[0];
+						if (sharedKey.length() != 36) {
+							throw new Exception("Invalid Pairing QR Code. sharedKey wrong length.");
+						}
 
-							String[] sharedKeyAndPassword = decrypted.split("\\|", Pattern.LITERAL);
+						final String password = new String(Hex.decode(sharedKeyAndPassword[1]), "UTF-8");
 
-							if (sharedKeyAndPassword.length < 2) {
-								throw new Exception("Invalid Pairing QR Code. sharedKeyAndPassword Incorrect number of components.");
-							}
+						application.clearWallet();
 
-							final String sharedKey = sharedKeyAndPassword[0];
-							if (sharedKey.length() != 36) {
-								throw new Exception("Invalid Pairing QR Code. sharedKey wrong length.");
-							}
+						Editor edit = PreferenceManager.getDefaultSharedPreferences(PairingHelp.this).edit();
 
-							final String password = new String(Hex.decode(sharedKeyAndPassword[1]), "UTF-8");
-//							Toast.makeText(application, password, Toast.LENGTH_LONG).show();
+						edit.putString("guid", guid);
+						edit.putString("sharedKey", sharedKey);
 
-							application.clearWallet();
+						edit.commit();
+						new Handler(Looper.getMainLooper()).post(new Runnable() {
+							@Override
+							public void run() {
+								application.checkIfWalletHasUpdated(password, guid, sharedKey, true, new SuccessCallback(){
 
-//							PinEntryActivity.clearPrefValues(application);
-
-							Editor edit = PreferenceManager.getDefaultSharedPreferences(PairingHelp.this).edit();
-
-							edit.putString("guid", guid);
-							edit.putString("sharedKey", sharedKey);
-							
-							edit.commit();
-
-							handler.post(new Runnable() {
-
-								@Override
-								public void run() {
-									application.checkIfWalletHasUpdated(password, guid, sharedKey, true, new SuccessCallback(){
-
-										@Override
-										public void onSuccess() {	
+									@Override
+									public void onSuccess() {
 //											registerNotifications();
 
-									        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(PairingHelp.this);
-											Editor edit = prefs.edit();
-											edit.putBoolean("validated", true);
-											edit.putBoolean("paired", true);
-											edit.commit();
+										SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(PairingHelp.this);
+										Editor edit = prefs.edit();
+										edit.putBoolean("validated", true);
+										edit.putBoolean("paired", true);
+										edit.commit();
 
-											try {
-												final String regId = GCMRegistrar.getRegistrationId(PairingHelp.this);
-												if (regId == null || regId.equals("")) {
-													GCMRegistrar.register(PairingHelp.this, Constants.SENDER_ID);
-												} else {
-													application.registerForNotificationsIfNeeded(regId);
-												}
-											} catch (Exception e) {
-												e.printStackTrace();
+										try {
+											final String regId = GCMRegistrar.getRegistrationId(PairingHelp.this);
+											if (regId == null || regId.equals("")) {
+												GCMRegistrar.register(PairingHelp.this, Constants.SENDER_ID);
+											} else {
+												application.registerForNotificationsIfNeeded(regId);
 											}
-
-//								        	Intent intent = new Intent(PairingHelp.this, PinEntryActivity.class);
-//								        	intent.putExtra("S", "1");
-//											Intent intent = new Intent(PairingHelp.this, PinActivity.class);
-											Intent intent = new Intent(PairingHelp.this, StartActivity.class);
-											intent.putExtra("S", "1");
-											intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-								    		startActivity(intent);
-
-											finish();
+										} catch (Exception e) {
+											e.printStackTrace();
 										}
+										Intent intent = new Intent(PairingHelp.this, StartActivity.class);
+										intent.putExtra("S", "1");
+										intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+										startActivity(intent);
 
-										@Override
-										public void onFail() {
-											finish();
+										finish();
+									}
 
-											Toast.makeText(application, R.string.toast_error_syncing_wallet, Toast.LENGTH_LONG).show();
-										}
-									});
-								}
-							});
+									@Override
+									public void onFail() {
+										finish();
 
-						} catch (final Exception e) {
-							e.printStackTrace();
+										Toast.makeText(application, R.string.toast_error_syncing_wallet, Toast.LENGTH_LONG).show();
+									}
+								});
+							}
+						});
+					} catch (final Exception e) {
+						e.printStackTrace();
+						new Handler(getMainLooper()).post(new Runnable() {
+							@Override
+							public void run() {
+								Toast.makeText(application, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
 
-							handler.post(new Runnable() {
-								public void run() {
+								e.printStackTrace();
 
-									Toast.makeText(application, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-
-									e.printStackTrace();
-
-									application.writeException(e);
-								}
-							});
-						}
-						
-						Looper.loop();
-
+								application.writeException(e);
+							}
+						});
 					}
-				}).start();
-			}
+				}
+			});
 		} catch (Exception e) {
-
 			Toast.makeText(application, e.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-
 			e.printStackTrace();
-
 			application.writeException(e);
 		}
 		
 	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		int itemId = item.getItemId();
+		switch (itemId) {
+			case android.R.id.home:
+				onBackPressed();
+				break;
+
+		}
+		return true;
+	}
+
+
 	public int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
 
 	    final int height = options.outHeight;

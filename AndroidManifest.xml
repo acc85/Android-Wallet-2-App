@@ -103,49 +103,6 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:excludeFromRecents="false"
             android:windowSoftInputMode="adjustPan"/>
-
-        <!--<activity-->
-            <!--android:name="info.blockchain.wallet.ui.PinEntryActivity"-->
-            <!--android:label="@string/app_name"-->
-            <!--android:noHistory="true"-->
-            <!--android:theme="@style/Theme.AppCompat.Light.NoActionBar"-->
-            <!--android:excludeFromRecents="true">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.VIEW" />-->
-                <!--<data android:scheme="bitcoin" />-->
-
-                <!--<category android:name="android.intent.category.DEFAULT" />-->
-                <!--<category android:name="android.intent.category.BROWSABLE" />-->
-            <!--</intent-filter>-->
-
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-
-        <!--</activity>-->
-
-        <!--<activity-->
-            <!--android:name="info.blockchain.wallet.ui.PinActivity"-->
-            <!--android:label="@string/app_name"-->
-            <!--android:noHistory="true"-->
-            <!--android:theme="@style/Theme.AppCompat.Light.NoActionBar"-->
-            <!--android:excludeFromRecents="true">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.VIEW" />-->
-                <!--<data android:scheme="bitcoin" />-->
-
-                <!--<category android:name="android.intent.category.DEFAULT" />-->
-                <!--<category android:name="android.intent.category.BROWSABLE" />-->
-            <!--</intent-filter>-->
-
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-
-        <!--</activity>-->
-        <!--android:noHistory="true"-->
         <activity
             android:name="info.blockchain.wallet.ui.StartActivity"
             android:label="@string/app_name"
@@ -181,6 +138,7 @@
 
         <activity
             android:name="info.blockchain.wallet.ui.PairingHelp"
+            android:theme="@style/Theme.LightActionBar"
             android:label="@string/app_name"></activity>
 
         <activity
@@ -235,8 +193,9 @@
 
         <activity
             android:name="info.blockchain.wallet.ui.PinCreateActivity"
+            android:windowSoftInputMode="adjustPan"
             android:label="@string/app_name"
-            android:theme="@android:style/Theme.Holo.Light"></activity>
+            android:theme="@style/Theme.LightActionBar"/>
 
         <activity
             android:name="info.blockchain.merchant.directory.MapActivity"

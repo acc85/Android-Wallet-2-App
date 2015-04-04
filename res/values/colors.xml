@@ -18,6 +18,10 @@
     <color name="magiclist_bg_selected">#FF1B8AC7</color>
     <color name="magiclist_bg_unselected">#FFFFFFFF</color>
 
+    <color name="setup_activity_button_select_color">#5a404040</color>
+    <color name="button_effect_color">#64fff5f8</color>
+    <color name="button_effect_default_color">#5effffff</color>
+
     <color name="white">#FFFFFF</color>
     	
 </resources>

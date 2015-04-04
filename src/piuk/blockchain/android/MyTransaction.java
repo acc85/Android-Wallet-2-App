@@ -20,10 +20,14 @@ package piuk.blockchain.android;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import piuk.blockchain.android.Constants;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.spongycastle.util.encoders.Hex;
 import com.google.bitcoin.core.Address;
 import com.google.bitcoin.core.NetworkParameters;
@@ -172,22 +176,16 @@ public class MyTransaction extends Transaction implements Serializable {
 			tx.time = new Date(0);
 		}
 
-		List<Map<String, Object>> inputs = (List<Map<String, Object>>) transactionDict
-				.get("inputs");
-		for (Map<String, Object> inputDict : inputs) {
-
-			Map<String, Object> prev_out_dict = (Map<String, Object>) inputDict
-					.get("prev_out");
-
-			if (prev_out_dict == null)
-				continue;
-
+		JSONArray inputs = new JSONArray(transactionDict.get("inputs").toString());
+		for(int i = 0; i < inputs.length(); i++){
+			JSONObject jsonObject = inputs.getJSONObject(i);
+			JSONObject prev_out = jsonObject.getJSONObject("prev_out");
 			int txOutputN = 0;
-			if (prev_out_dict.get("n") != null)
-				txOutputN = ((Number) prev_out_dict.get("n")).intValue();
+			if (prev_out.get("n") != null)
+				txOutputN = ((Number) prev_out.get("n")).intValue();
 
-			if (tx.tag == null)
-				tx.tag = (String) prev_out_dict.get("addr_tag");
+//			if (tx.tag == null)
+//				tx.tag = (String) prev_out.get("addr_tag");
 
 			TransactionOutPoint outpoint = new TransactionOutPoint(
 					Constants.NETWORK_PARAMETERS, txOutputN, (Transaction) null);
@@ -195,35 +193,36 @@ public class MyTransaction extends Transaction implements Serializable {
 			MyTransactionInput input = new MyTransactionInput(
 					Constants.NETWORK_PARAMETERS, null, null, outpoint);
 
-			if ((String) prev_out_dict.get("addr") != null)
-				input.address = new Address(Constants.NETWORK_PARAMETERS,
-						(String) prev_out_dict.get("addr")).toString();
+			if ( prev_out.get("addr") != null)
+				input.address = new Address(Constants.NETWORK_PARAMETERS,prev_out.getString("addr")).toString();
 
-			if ((Number) prev_out_dict.get("value") != null)
-				input.value = BigInteger.valueOf(((Number) prev_out_dict
-						.get("value")).longValue());
+			if (prev_out.get("value") != null)
+				input.value = BigInteger.valueOf(prev_out.getLong("value"));
 
 			tx.addInput(input);
+
 		}
 
-		List<Map<String, Object>> outputs = (List<Map<String, Object>>) transactionDict
-				.get("out");
-		for (Map<String, Object> outDict : outputs) {
 
-			if (tx.tag == null)
-				tx.tag = (String) outDict.get("addr_tag");
 
-			BigInteger value = BigInteger.valueOf(((Number) outDict
+		JSONArray outputs = new JSONArray(transactionDict.get("out").toString());
+		for(int i = 0; i < outputs.length(); i++) {
+			JSONObject out = outputs.getJSONObject(i);
+//			if (tx.tag == null)
+//				tx.tag = out.getString("addr_tag");
+
+			BigInteger value = BigInteger.valueOf(((Number) out
 					.get("value")).longValue());
 
 			Address addr = new Address(Constants.NETWORK_PARAMETERS,
-					(String) outDict.get("addr"));
+					out.get("addr").toString());
 
-			MyTransactionOutput output = new MyTransactionOutput(
-					Constants.NETWORK_PARAMETERS, null, value, addr);
+			MyTransactionOutput output = new MyTransactionOutput(Constants.NETWORK_PARAMETERS, null, value, addr);
 
 			tx.addOutput(output);
+
 		}
+
 
 		return tx;
 	}

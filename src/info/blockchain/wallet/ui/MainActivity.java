@@ -118,8 +118,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     	Locale locale = new Locale("en", "US");
         Locale.setDefault(locale);
         
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy); 
+//        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+//        StrictMode.setThreadPolicy(policy);
 
         boolean isFirst = false;
         boolean isSecured = false;

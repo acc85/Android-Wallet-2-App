@@ -106,6 +106,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.android.Contents;
 import com.google.zxing.client.android.encode.QRCodeEncoder;
 
+import org.json.JSONException;
+
 public class SendFragment extends Fragment   {
 	private static final String SendTypeQuickSend = "Quick Send";
 	private static final String SendTypeCustomSend = "Custom Send";
@@ -225,9 +227,13 @@ public class SendFragment extends Fragment   {
 
 //        		Toast.makeText(getActivity(), "In SendFragment:" + address, Toast.LENGTH_SHORT).show();
 
-    			doScanInput(address);
+				try {
+					doScanInput(address);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 
-            }
+			}
         }
     };
 
@@ -249,7 +255,11 @@ public class SendFragment extends Fragment   {
 		        sendingProgressDialog.dismiss();
 	        }
 
-	        clearSend();
+			try {
+				clearSend();
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 		};
 
 		@Override
@@ -1166,8 +1176,12 @@ public class SendFragment extends Fragment   {
 		        	}
 
 		        	if(isMagic) {
-		        		removeMagicList();
-		        	}
+						try {
+							removeMagicList();
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
 
 	                icon_row.setVisibility(View.GONE);
 
@@ -1185,10 +1199,14 @@ public class SendFragment extends Fragment   {
         ivClearInput.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-            	
-            	clearSend();
 
-                return false;
+				try {
+					clearSend();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+				return false;
             }
         });
 
@@ -1276,8 +1294,12 @@ public class SendFragment extends Fragment   {
         	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         		if(isChecked)	{
 //        			sendMode2.setVisibility(View.INVISIBLE);
-        			doCustomSend();
-        		}
+					try {
+						doCustomSend();
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
         		else	{
 //        			sendMode2.setVisibility(View.VISIBLE);
         			doSimpleSend();
@@ -1326,8 +1348,12 @@ public class SendFragment extends Fragment   {
                 		displayMagicList();
                 	}
                 	else {
-                		removeMagicList();
-                	}
+						try {
+							removeMagicList();
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
 
               		break;
               	}
@@ -1541,9 +1567,13 @@ public class SendFragment extends Fragment   {
 			String address = data.getStringExtra(ZBarConstants.SCAN_RESULT);
 //        	Log.d("Scan result", strResult);
 
-			doScanInput(address);
+			try {
+				doScanInput(address);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
 
-        }
+		}
 		else if(resultCode == Activity.RESULT_CANCELED && requestCode == ZBAR_SCANNER_REQUEST) {
 //            Toast.makeText(this, R.string.camera_unavailable, Toast.LENGTH_SHORT).show();
         }
@@ -1693,8 +1723,9 @@ public class SendFragment extends Fragment   {
 		                        imm.showSoftInput(edAmount1, InputMethodManager.SHOW_FORCED);
 
 		                }
-		    	    }
-		    	    finally
+		    	    } catch (JSONException e) {
+						e.printStackTrace();
+					} finally
 		    	    {
 		    	        cur.close();
 		    	    }
@@ -1846,7 +1877,7 @@ public class SendFragment extends Fragment   {
 
     }
 
-    private void initMagicList() {
+    private void initMagicList() throws JSONException {
 
 //		final WalletApplication application = (WalletApplication)getActivity().getApplication();
 //		MyRemoteWallet wallet = application.getRemoteWallet();
@@ -2004,8 +2035,12 @@ public class SendFragment extends Fragment   {
             			layoutPhoneContacts.setBackgroundColor(color_contacts_unselected);
             			tvPhoneContacts.setTextColor(0xFF000000);
             		}
-            		initMagicList();
-            		adapter.notifyDataSetChanged();                            		
+				try {
+					initMagicList();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				adapter.notifyDataSetChanged();
                 }
         });
         layoutContacts.setOnClickListener(new View.OnClickListener() {        
@@ -2117,8 +2152,12 @@ public class SendFragment extends Fragment   {
             	currentSelectedAddress = map.get("address");
             	*/
 
-                removeMagicList();
-                edAmount1.requestFocus();
+				try {
+					removeMagicList();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+				edAmount1.requestFocus();
                 edAmount1.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                 imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0);
 
@@ -2138,7 +2177,7 @@ public class SendFragment extends Fragment   {
         magicList.setAdapter(adapter);
     }
 
-    private void removeMagicList() {
+    private void removeMagicList() throws JSONException {
 		isMagic = false;
 
 		tvCurrency.setBackgroundColor(Color.WHITE);
@@ -2178,7 +2217,7 @@ public class SendFragment extends Fragment   {
     	sendType = SendTypeQuickSend;
     }
 
-    private void doCustomSend() {
+    private void doCustomSend() throws JSONException {
     	/*
     	if(isMagic) {
     		removeMagicList();
@@ -2348,12 +2387,16 @@ public class SendFragment extends Fragment   {
 	    	public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3)	{
 
             	if(edAmount.getText().toString().length() > 0) {
-            		if(getBTCEnteredOutputValue(edAmount.getText().toString()).compareTo(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))) == 1) {
-            			edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))));
-            			BigInteger remainder = getBTCEnteredOutputValue(edAmount1.getText().toString()).subtract(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition())));
-            			addSendingAddress(displayFromAddresses, wallet, fromAddresses, BlockchainUtil.formatBitcoin(remainder));
-            		}
-            	}
+					try {
+						if(getBTCEnteredOutputValue(edAmount.getText().toString()).compareTo(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))) == 1) {
+                            edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))));
+                            BigInteger remainder = getBTCEnteredOutputValue(edAmount1.getText().toString()).subtract(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition())));
+                            addSendingAddress(displayFromAddresses, wallet, fromAddresses, BlockchainUtil.formatBitcoin(remainder));
+                        }
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
 
 	    	}
 	        public void onNothingSelected(AdapterView<?> arg0) {
@@ -2370,14 +2413,18 @@ public class SendFragment extends Fragment   {
                         	edAmount.setText(BlockchainUtil.formatBitcoin(getBTCEnteredOutputValue(edAmount1.getText().toString())));
                 		}
                 		else {
-                    		if(getBTCEnteredOutputValue(edAmount1.getText().toString()).compareTo(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))) == 1) {
-                    			edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))));
-                    		}
-                    		else {
-                    			BigInteger remainder = getBTCEnteredOutputValue(edAmount1.getText().toString()).subtract(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition())));
-                    			edAmount.setText(BlockchainUtil.formatBitcoin(remainder));
-                    		}
-                		}
+							try {
+								if(getBTCEnteredOutputValue(edAmount1.getText().toString()).compareTo(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))) == 1) {
+                                    edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition()))));
+                                }
+                                else {
+                                    BigInteger remainder = getBTCEnteredOutputValue(edAmount1.getText().toString()).subtract(wallet.getBalance(fromAddresses.get(spAddress.getSelectedItemPosition())));
+                                    edAmount.setText(BlockchainUtil.formatBitcoin(remainder));
+                                }
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+						}
                 	}
                 }
             }
@@ -2831,10 +2878,14 @@ public class SendFragment extends Fragment   {
     	spAddress.setOnItemSelectedListener(new OnItemSelectedListener() {
 			public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
 				if (edAmount.getText().toString().length() > 0) {
-					if (arg2 != 0 && getBTCEnteredOutputValue(remainder).compareTo(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))) == 1) {
-						edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))));
-						BigInteger remaining = getBTCEnteredOutputValue(remainder).subtract(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition())));
-						addSendingAddress(displayAddresses, wallet, addresses, BlockchainUtil.formatBitcoin(remaining));
+					try {
+						if (arg2 != 0 && getBTCEnteredOutputValue(remainder).compareTo(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))) == 1) {
+                            edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))));
+                            BigInteger remaining = getBTCEnteredOutputValue(remainder).subtract(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition())));
+                            addSendingAddress(displayAddresses, wallet, addresses, BlockchainUtil.formatBitcoin(remaining));
+                        }
+					} catch (JSONException e) {
+						e.printStackTrace();
 					}
 				}
 			}
@@ -2852,11 +2903,15 @@ public class SendFragment extends Fragment   {
 						if (spAddress.getSelectedItemPosition() == 0) {
 							edAmount.setText(remainder);
 						} else {
-							if (getBTCEnteredOutputValue(remainder).compareTo(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))) == 1) {
-								edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))));
-							} else {
-								BigInteger remaining = getBTCEnteredOutputValue(remainder).subtract(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition())));
-								edAmount.setText(BlockchainUtil.formatBitcoin(remaining));
+							try {
+								if (getBTCEnteredOutputValue(remainder).compareTo(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))) == 1) {
+                                    edAmount.setText(BlockchainUtil.formatBitcoin(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition()))));
+                                } else {
+                                    BigInteger remaining = getBTCEnteredOutputValue(remainder).subtract(wallet.getBalance(addresses.get(spAddress.getSelectedItemPosition())));
+                                    edAmount.setText(BlockchainUtil.formatBitcoin(remaining));
+                                }
+							} catch (JSONException e) {
+								e.printStackTrace();
 							}
 						}
 					}
@@ -2914,7 +2969,7 @@ public class SendFragment extends Fragment   {
     	startActivityForResult(intent, SELECT_INTL_PREFIX);
     }
     
-    private void doScanInput(String address)	{
+    private void doScanInput(String address) throws JSONException {
         if(BitcoinAddressCheck.isValidAddress(address)) {
     		if(isMagic) {
     			removeMagicList();
@@ -3042,7 +3097,7 @@ public class SendFragment extends Fragment   {
         imm.hideSoftInputFromWindow(edAmount1.getWindowToken(), 0);
     }
 
-    private void clearSend()	{
+    private void clearSend() throws JSONException {
     	
 		sendViaEmail = false;
 		sendViaSMS = false;

@@ -1,32 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@drawable/net_bg"
     android:orientation="vertical">
 
-    <!-- header  -->
-    <LinearLayout
+    <!--&lt;!&ndash; header  &ndash;&gt;-->
+    <RelativeLayout
         android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center_vertical|right"
-        android:layout_gravity="center_vertical|right">
-
-        <TextView
-            android:id="@+id/header"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textSize="30sp"
-            android:text="@string/connect_existing_wallet"
-            android:gravity="center_vertical|right"
-            android:layout_gravity="center_vertical|right"
-            android:textAlignment="gravity"
-            android:textColor="#FFffffff"
-            android:paddingRight="5dp" />
-    </LinearLayout>
+        android:orientation="vertical">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/pairingHelpToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            app:title=""
+            app:theme="@style/MyApp.ActionBarTheme"
+            android:minHeight="?attr/actionBarSize">
+            <TextView
+                android:id="@+id/header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="26sp"
+                android:text="@string/connect_existing_wallet"
+                android:gravity="right"
+                android:layout_gravity="right|center_vertical"
+                android:textAlignment="gravity"
+                android:textColor="#FFffffff"
+                android:paddingRight="15dp" />
+        </android.support.v7.widget.Toolbar>
+    </RelativeLayout>
 
     <!-- blue strip -->
     <LinearLayout
@@ -83,25 +90,22 @@
         android:gravity="center_vertical|center_horizontal">
 
         <RelativeLayout
-            android:id="@+id/scan"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#FF039BD3"
             android:orientation="horizontal"
             android:padding="10dp">
 
-            <!--<LinearLayout-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_weight="1"-->
-                <!--android:background="#FF039BD3"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:gravity="center_vertical|right">-->
 
             <LinearLayout
+                android:id="@+id/scan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true">
+                android:padding="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/button_effect"
+                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="true">
                 <ImageView
                     android:id="@+id/cameraIcon"
                     android:src="@drawable/camera_icon"
@@ -123,67 +127,7 @@
                     android:paddingRight="5dp" />
             </LinearLayout>
 
-            <!--</LinearLayout>-->
-
-            <!--<LinearLayout-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_weight="2"-->
-                <!--android:background="#FF039BD3"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:gravity="center_vertical|left"-->
-                <!--android:layout_gravity="center_vertical|left">-->
-
-
-            <!--</LinearLayout>-->
         </RelativeLayout>
-
-        <!--<LinearLayout-->
-            <!--android:id="@+id/manual"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:background="#FF039BD3"-->
-            <!--android:orientation="horizontal"-->
-            <!--android:padding="10dp">-->
-
-            <!--<LinearLayout-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_weight="1"-->
-                <!--android:background="#FF039BD3"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:gravity="center_vertical|right">-->
-
-                <!--<ImageView-->
-                    <!--android:src="@drawable/keyboard_icon_white"-->
-                    <!--android:scaleType="centerInside"-->
-                    <!--android:layout_width="25dp"-->
-                    <!--android:layout_height="25dp" />-->
-            <!--</LinearLayout>-->
-
-            <!--<LinearLayout-->
-                <!--android:layout_width="0dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_weight="2"-->
-                <!--android:background="#FF039BD3"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:gravity="center_vertical|left"-->
-                <!--android:layout_gravity="center_vertical|left">-->
-
-                <!--<TextView-->
-                    <!--android:id="@+id/footer2"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:textSize="12sp"-->
-                    <!--android:gravity="center_vertical|left"-->
-                    <!--android:layout_gravity="center_vertical|left"-->
-                    <!--android:textAlignment="gravity"-->
-                    <!--android:textColor="#FFffffff"-->
-                    <!--android:paddingLeft="5dp"-->
-                    <!--android:paddingRight="5dp" />-->
-            <!--</LinearLayout>-->
-
-        <!--</LinearLayout>-->
 
     </RelativeLayout>
 

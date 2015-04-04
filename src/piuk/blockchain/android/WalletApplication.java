@@ -42,9 +42,8 @@ import com.google.bitcoin.params.MainNetParams;
 //import com.google.bitcoin.store.WalletExtensionSerializer;
 
 import org.apache.commons.io.IOUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.spongycastle.util.encoders.Hex;
 
 //import piuk.blockchain.android.service.BlockchainServiceImpl;
@@ -1121,8 +1120,8 @@ public class WalletApplication extends Application {
 
 					if (callback != null) {
 						try {
-							callback.onSuccess((JSONObject) new JSONParser().parse(response));
-						} catch (ParseException e) {
+							callback.onSuccess(new JSONObject(response));
+						} catch (JSONException e) {
 							callback.onFail(e.getLocalizedMessage());
 						}
 					}

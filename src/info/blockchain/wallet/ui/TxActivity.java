@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,6 +24,8 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -31,8 +35,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.math.BigInteger;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+//import org.json.simple.JSONObject;
+//import org.json.simple.parser.JSONParser;
 
 import info.blockchain.api.LatestBlock;
 import info.blockchain.api.Transaction;
@@ -419,7 +423,7 @@ public class TxActivity extends Activity	{
 
 		String response = WalletUtils.getURL(url);
 
-		return (JSONObject) new JSONParser().parse(response);
+		return new JSONObject(response);
 	}
 
     private void setValueThenAndNow(final MyRemoteWallet remoteWallet, final String txHash) {
@@ -433,35 +437,32 @@ public class TxActivity extends Activity	{
 		
 		final long txIndex = tx.getTxIndex();
 
-		final Handler handler = new Handler();
-
-		new Thread(new Runnable() {
+		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
-				try {							
+				try {
 					final JSONObject obj = getTransactionSummary(txIndex, remoteWallet.getGUID(), finalResult);
-
-					handler.post(new Runnable() {
+					new Handler(Looper.myLooper()).post(new Runnable() {
 						@Override
 						public void run() {
 							try {
-								String result_local = (String)obj.get("result_local");
+								String result_local = (String) obj.get("result_local");
 								String result_local_historical = (String) obj.get("result_local_historical");
-								
-								if(result_local != null) {
-									while(!Character.isDigit(result_local.charAt(0))) {
+
+								if (result_local != null) {
+									while (!Character.isDigit(result_local.charAt(0))) {
 										result_local = result_local.substring(1);
 									}
 								}
 
-								if(result_local_historical != null) {
-									while(!Character.isDigit(result_local_historical.charAt(0))) {
+								if (result_local_historical != null) {
+									while (!Character.isDigit(result_local_historical.charAt(0))) {
 										result_local_historical = result_local_historical.substring(1);
 									}
 								}
 
-						        tvValueThenValue.setText(result_local_historical + " USD");
-						        tvValueNowValue.setText(result_local + " USD");	
+								tvValueThenValue.setText(result_local_historical + " USD");
+								tvValueNowValue.setText(result_local + " USD");
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -471,7 +472,7 @@ public class TxActivity extends Activity	{
 					e.printStackTrace();
 				}
 			}
-		}).start();
+		});
 	}
 
     private void setValueHistorical(final MyRemoteWallet remoteWallet, final String txHash) {
@@ -485,21 +486,18 @@ public class TxActivity extends Activity	{
 		
 		final long txIndex = tx.getTxIndex();
 
-		final Handler handler = new Handler();
-
-		new Thread(new Runnable() {
+		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
-				try {							
+				try {
 					final JSONObject obj = getTransactionSummary(txIndex, remoteWallet.getGUID(), finalResult);
-
-					handler.post(new Runnable() {
+					new Handler(Looper.getMainLooper()).post(new Runnable() {
 						@Override
 						public void run() {
 							try {
 								strResultHistorical = (String) obj.get("result_local_historical");
-								if(strResultHistorical != null) {
-									while(Character.isDigit(strResultHistorical.charAt(0))) {
+								if (strResultHistorical != null) {
+									while (Character.isDigit(strResultHistorical.charAt(0))) {
 										strResultHistorical = strResultHistorical.substring(1);
 									}
 								}
@@ -513,282 +511,237 @@ public class TxActivity extends Activity	{
 					e.printStackTrace();
 				}
 			}
-		}).start();
+		});
+
 	}
 
     private void setTxValues(final String txUrl, final String blockUrl) {
 
-		final Handler handler = new Handler();
-
-		new Thread(new Runnable() {
+		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
-				try {							
+				try {
 					final String result = getTxData(txUrl, blockUrl);
 
-					handler.post(new Runnable() {
+					new Handler(Looper.getMainLooper()).post(new Runnable() {
 						@Override
 						public void run() {
 							try {
 
-						    	String[] results = result.split("\\|");
+								String[] results = result.split("\\|");
 
-						    	transaction.setData(results[0]);
-						    	transaction.parse();
-						    	height = transaction.getHeight();
+								transaction.setData(results[0]);
+								transaction.parse();
+								height = transaction.getHeight();
 
-						    	tvValueFee.setText(BlockchainUtil.formatBitcoin(BigInteger.valueOf(transaction.getFee())) + " BTC");
+								tvValueFee.setText(BlockchainUtil.formatBitcoin(BigInteger.valueOf(transaction.getFee())) + " BTC");
+								((TextView)findViewById(R.id.link_label)).setOnTouchListener(new OnTouchListener() {
+									@Override
+									public boolean onTouch(View v, MotionEvent event) {
+										Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://blockchain.info/tx/" + transaction.getHash()));
+										startActivity(i);
+										return false;
+									}
+								});
 
-						    	/*
-			                    if(isSending)	{
-							    	String strUpdatedResult = BlockchainUtil.formatBitcoin(BigInteger.valueOf(Long.parseLong(strResult)).subtract(BigInteger.valueOf(transaction.getFee())));
-			                		tvResult.setText("SENT " + strUpdatedResult + " BTC");
-			                    }
-			                    */
+								LayoutInflater inflater = (LayoutInflater)TxActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-						    	((TextView)findViewById(R.id.link_label)).setOnTouchListener(new OnTouchListener() {
-						            @Override
-						            public boolean onTouch(View v, MotionEvent event) {
-						            	Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://blockchain.info/tx/" + transaction.getHash())); 
-						            	startActivity(i);
-						                return false;
-						            }
-						        });
+								TableLayout froms = (TableLayout)findViewById(R.id.froms);
 
-						        LayoutInflater inflater = (LayoutInflater)TxActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+								String from = null;
+								String to = null;
+								ArrayList<String> seenAddresses = new ArrayList<String>();
+								int processed = 0;
+								for(int i = 0; i < 1; i++)	{
 
-						        TableLayout froms = (TableLayout)findViewById(R.id.froms);
+									if(seenAddresses.contains(transaction.getInputs().get(i).addr))	{
+										continue;
+									}
+									else	{
+										seenAddresses.add(transaction.getInputs().get(i).addr);
+									}
 
-						    	String from = null;
-						    	String to = null;
-						    	ArrayList<String> seenAddresses = new ArrayList<String>();
-						    	int processed = 0;
-						        //for(int i = 0; i < transaction.getInputs().size(); i++)	{
-							    for(int i = 0; i < 1; i++)	{
+									LinearLayout row = (LinearLayout)inflater.inflate(R.layout.layout_tx2, null, false);
+									tvFrom = (TextView)row.findViewById(R.id.from);
+									if(i > 0)	{
+										tvFrom.setText("");
+									}
+									tvFromAddress = (TextView)row.findViewById(R.id.from_address);
+									tvFromAddress.setTypeface(TypefaceUtil.getInstance(TxActivity.this).getGravityBoldTypeface());
+									tvFromAddress.setTextColor(0xFF676767);
+									tvFromAddress2 = (TextView)row.findViewById(R.id.from_address2);
+									tvFromAddress2.setTypeface(TypefaceUtil.getInstance(TxActivity.this).getGravityLightTypeface());
+									tvFromAddress2.setTextColor(0xFF949ea3);
 
-						        	if(seenAddresses.contains(transaction.getInputs().get(i).addr))	{
-						        		continue;
-						        	}
-						        	else	{
-							        	seenAddresses.add(transaction.getInputs().get(i).addr);
-						        	}
+									if(isSending)	{
+										tvFrom.setTextColor(getResources().getColor(R.color.blockchain_red));
+										((LinearLayout)findViewById(R.id.div1)).setBackgroundResource(R.color.blockchain_red);
+										((LinearLayout)row.findViewById(R.id.div2)).setBackgroundResource(R.color.blockchain_red);
+										((LinearLayout)findViewById(R.id.div3)).setBackgroundResource(R.color.blockchain_red);
+										((LinearLayout)findViewById(R.id.div4)).setBackgroundResource(R.color.blockchain_red);
+									}
+									else	{
+										tvFrom.setTextColor(getResources().getColor(R.color.blockchain_green));
+										((LinearLayout)findViewById(R.id.div1)).setBackgroundResource(R.color.blockchain_green);
+										((LinearLayout)row.findViewById(R.id.div2)).setBackgroundResource(R.color.blockchain_green);
+										((LinearLayout)findViewById(R.id.div3)).setBackgroundResource(R.color.blockchain_green);
+										((LinearLayout)findViewById(R.id.div4)).setBackgroundResource(R.color.blockchain_green);
+									}
 
-							        LinearLayout row = (LinearLayout)inflater.inflate(R.layout.layout_tx2, null, false);
-						            tvFrom = (TextView)row.findViewById(R.id.from);
-						            if(i > 0)	{
-						            	tvFrom.setText("");
-						            }
-						            tvFromAddress = (TextView)row.findViewById(R.id.from_address);
-						            tvFromAddress.setTypeface(TypefaceUtil.getInstance(TxActivity.this).getGravityBoldTypeface());
-						            tvFromAddress.setTextColor(0xFF676767);
-						            tvFromAddress2 = (TextView)row.findViewById(R.id.from_address2);
-						            tvFromAddress2.setTypeface(TypefaceUtil.getInstance(TxActivity.this).getGravityLightTypeface());
-						            tvFromAddress2.setTextColor(0xFF949ea3);
-						            
-						            if(isSending)	{
-						                tvFrom.setTextColor(getResources().getColor(R.color.blockchain_red));
-						                ((LinearLayout)findViewById(R.id.div1)).setBackgroundResource(R.color.blockchain_red);
-						                ((LinearLayout)row.findViewById(R.id.div2)).setBackgroundResource(R.color.blockchain_red);
-						                ((LinearLayout)findViewById(R.id.div3)).setBackgroundResource(R.color.blockchain_red);
-						                ((LinearLayout)findViewById(R.id.div4)).setBackgroundResource(R.color.blockchain_red);
-						            }
-						            else	{
-						                tvFrom.setTextColor(getResources().getColor(R.color.blockchain_green));
-						                ((LinearLayout)findViewById(R.id.div1)).setBackgroundResource(R.color.blockchain_green);
-						                ((LinearLayout)row.findViewById(R.id.div2)).setBackgroundResource(R.color.blockchain_green);
-						                ((LinearLayout)findViewById(R.id.div3)).setBackgroundResource(R.color.blockchain_green);
-						                ((LinearLayout)findViewById(R.id.div4)).setBackgroundResource(R.color.blockchain_green);
-						            }
+									//
+									// FROM
+									//
+									if(labels.get(transaction.getInputs().get(i).addr) != null) {
+										from = labels.get(transaction.getInputs().get(i).addr);
+									}
+									else {
+										from = transaction.getInputs().get(i).addr;
+										final String address = from;
+									}
+									String shortAddress = transaction.getInputs().get(i).addr;
 
-						            /*
-						        	if(transaction.getInputValues().size() == 1) {
-						                ((TextView)row.findViewById(R.id.result2)).setVisibility(View.INVISIBLE);
-						        	}
-						        	else {
-						                TextView tvResult2 = (TextView)row.findViewById(R.id.result2);
-						                long value = transaction.getTotalValues().get(transaction.getInputs().get(i).addr);
-						                String strValue = BlockchainUtil.formatBitcoin(BigInteger.valueOf(value).abs());
-//						                tvResult2.setText(strValue + " BTC");
-						                tvResult2.setVisibility(View.GONE);
-//						                txAmounts.put(tvResult2, strValue);
-						        	}
-						        	*/
+									if(labels.get(transaction.getInputs().get(i).addr) != null) {
+										tvFromAddress.setText(from);
+										tvFromAddress2.setText(shortAddress);
+									}
+									else {
+										tvFromAddress.setText(shortAddress);
+										tvFromAddress2.setVisibility(View.GONE);
+									}
 
-							        //
-							        // FROM
-							        //
-						        	if(labels.get(transaction.getInputs().get(i).addr) != null) {
-						        		from = labels.get(transaction.getInputs().get(i).addr);
-						        	}
-						        	else {
-						        		from = transaction.getInputs().get(i).addr;
-						        		final String address = from;
-						        	}
-						        	/*
-						        	if(from.length() > 15) {
-						        		from = from.substring(0, 15) + "...";
-						        	}
-						        	*/
-						        	String shortAddress = transaction.getInputs().get(i).addr;
-						        	/*
-						        	if(shortAddress.length() > 15) {
-						        		shortAddress = shortAddress.substring(0, 15) + "...";
-						        	}
-						        	*/
+									final String addr = transaction.getInputs().get(i).addr;
+									tvFromAddress.setOnClickListener(new OnClickListener() {
+										public void onClick(View arg0) {
+											android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+											android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+											clipboard.setPrimaryClip(clip);
+											Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+										}
+									});
+									if(labels.get(addr) == null) {
+										tvFromAddress.setOnLongClickListener(new OnLongClickListener() {
+											public boolean onLongClick(View arg0) {
+												promptDialogForAddToAddressBook(addr);
+												return true;
+											}
+										});
+									}
+									tvFromAddress2.setOnClickListener(new OnClickListener() {
+										public void onClick(View arg0) {
+											android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+											android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+											clipboard.setPrimaryClip(clip);
+											Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+										}
+									});
+									if(labels.get(addr) == null) {
+										tvFromAddress2.setOnLongClickListener(new OnLongClickListener() {
+											public boolean onLongClick(View arg0) {
+												promptDialogForAddToAddressBook(addr);
+												return true;
+											}
+										});
+									}
 
-						        	if(labels.get(transaction.getInputs().get(i).addr) != null) {
-							        	tvFromAddress.setText(from);
-							        	tvFromAddress2.setText(shortAddress);
-						        	}
-						        	else {
-							        	tvFromAddress.setText(shortAddress);
-							        	tvFromAddress2.setVisibility(View.GONE);
-						        	}
+									TableRow tablerow = new TableRow(TxActivity.this);
+									tablerow.setOrientation(TableRow.HORIZONTAL);
+									tablerow.addView(row);
+									froms.addView(tablerow);
 
-						        	final String addr = transaction.getInputs().get(i).addr;
-						        	tvFromAddress.setOnClickListener(new OnClickListener() {
-						        	    public void onClick(View arg0) {
-						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
-						          		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
-						          		    clipboard.setPrimaryClip(clip);
-						         			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
-						        	    }
-						        	});
-						        	if(labels.get(addr) == null) {
-						            	tvFromAddress.setOnLongClickListener(new OnLongClickListener() {
-						            	    public boolean onLongClick(View arg0) {
-						                    	promptDialogForAddToAddressBook(addr);            			
-						            	        return true;
-						            	    }
-						            	});
-						        	}
-						        	tvFromAddress2.setOnClickListener(new OnClickListener() {
-						        	    public void onClick(View arg0) {
-						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
-						          		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
-						          		    clipboard.setPrimaryClip(clip);
-						         			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
-						        	    }
-						        	});
-						        	if(labels.get(addr) == null) {
-						            	tvFromAddress2.setOnLongClickListener(new OnLongClickListener() {
-						            	    public boolean onLongClick(View arg0) {
-						                    	promptDialogForAddToAddressBook(addr);            			
-						            	        return true;
-						            	    }
-						            	});
-						        	}
+									if(processed == 2) {
+										break;
+									}
+									processed++;
 
-						        	TableRow tablerow = new TableRow(TxActivity.this);
-						            tablerow.setOrientation(TableRow.HORIZONTAL);
-						            tablerow.addView(row);
-						            froms.addView(tablerow);
+								}
 
-						            if(processed == 2) {
-						            	break;
-						            }
-						            processed++;
+								String toTxAddress = null;
+								if(isSending) {
+									toTxAddress = transaction.getOutputs().get(0).addr;
+								}
+								else {
+									final WalletApplication application = (WalletApplication)TxActivity.this.getApplication();
+									MyRemoteWallet wallet = application.getRemoteWallet();
+									List<String> activeAddresses = Arrays.asList(wallet.getActiveAddresses());
 
-						        }
+									if(transaction.getOutputs() != null && transaction.getOutputs().size() > 0) {
+										for(int i = 0; i < transaction.getOutputs().size(); i++) {
+											if(activeAddresses.contains(transaction.getOutputs().get(i).addr)) {
+												toTxAddress = transaction.getOutputs().get(i).addr;
+												break;
+											}
+										}
 
-						        String toTxAddress = null;
-						        if(isSending) {
-						        	toTxAddress = transaction.getOutputs().get(0).addr;
-						        }
-						        else {
-						    		final WalletApplication application = (WalletApplication)TxActivity.this.getApplication();
-						    		MyRemoteWallet wallet = application.getRemoteWallet();
-						    		List<String> activeAddresses = Arrays.asList(wallet.getActiveAddresses());
+										toTxAddress = transaction.getOutputs().get(0).addr;
+									}
+								}
 
-						        	if(transaction.getOutputs() != null && transaction.getOutputs().size() > 0) {
-							        	for(int i = 0; i < transaction.getOutputs().size(); i++) {
-							        		if(activeAddresses.contains(transaction.getOutputs().get(i).addr)) {
-							        			toTxAddress = transaction.getOutputs().get(i).addr;
-							        			break;
-							        		}
-							        	}
-							        	
-							        	toTxAddress = transaction.getOutputs().get(0).addr;
-						        	}
-						        }
+								//
+								// TO
+								//
+								if(labels.get(toTxAddress) != null) {
+									to = labels.get(toTxAddress);
+								}
+								else {
+									final String address = toTxAddress;
+									to = toTxAddress;
+								}
+								String shortAddress = toTxAddress;
+								if(labels.get(toTxAddress) != null) {
+									tvToAddress.setText(to);
+									tvToAddress2.setText(shortAddress);
+								}
+								else {
+									tvToAddress.setText(shortAddress);
+									tvToAddress2.setVisibility(View.GONE);
+								}
 
-						        //
-						        // TO
-						        //
-						    	if(labels.get(toTxAddress) != null) {
-						    		to = labels.get(toTxAddress);
-						    	}
-						    	else {
-						    		final String address = toTxAddress;
-						    		to = toTxAddress;
-						    	}
-						    	/*
-						    	if(to.length() > 15) {
-						    		to = to.substring(0, 15) + "...";
-						    	}
-						    	*/
-						    	String shortAddress = toTxAddress;
-						    	/*
-						    	if(shortAddress.length() > 15) {
-						    		shortAddress = shortAddress.substring(0, 15) + "...";
-						    	}
-						    	*/
+								final String addr = toTxAddress;
+								tvToAddress.setOnClickListener(new OnClickListener() {
+									public void onClick(View arg0) {
+										android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+										android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+										clipboard.setPrimaryClip(clip);
+										Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+									}
+								});
+								if(labels.get(addr) == null) {
+									tvToAddress.setOnLongClickListener(new OnLongClickListener() {
+										public boolean onLongClick(View arg0) {
+											promptDialogForAddToAddressBook(addr);
+											return true;
+										}
+									});
+								}
+								tvToAddress2.setOnClickListener(new OnClickListener() {
+									public void onClick(View arg0) {
+										android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+										android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+										clipboard.setPrimaryClip(clip);
+										Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+									}
+								});
+								if(labels.get(addr) == null) {
+									tvToAddress2.setOnLongClickListener(new OnLongClickListener() {
+										public boolean onLongClick(View arg0) {
+											promptDialogForAddToAddressBook(addr);
+											return true;
+										}
+									});
+								}
 
-						    	if(labels.get(toTxAddress) != null) {
-						        	tvToAddress.setText(to);
-						        	tvToAddress2.setText(shortAddress);
-						    	}
-						    	else {
-						        	tvToAddress.setText(shortAddress);
-						        	tvToAddress2.setVisibility(View.GONE);
-						    	}
+								latestBlock.setData(results[1]);
+								latestBlock.parse();
+								latest_block = latestBlock.getLatestBlock();
 
-						    	final String addr = toTxAddress;
-						    	tvToAddress.setOnClickListener(new OnClickListener() {
-						    	    public void onClick(View arg0) {
-						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
-						      		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
-						      		    clipboard.setPrimaryClip(clip);
-						     			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
-						    	    }
-						    	});
-						    	if(labels.get(addr) == null) {
-						        	tvToAddress.setOnLongClickListener(new OnLongClickListener() {
-						        	    public boolean onLongClick(View arg0) {
-						                	promptDialogForAddToAddressBook(addr);            			
-						        	        return true;
-						        	    }
-						        	});
-						    	}
-						    	tvToAddress2.setOnClickListener(new OnClickListener() {
-						    	    public void onClick(View arg0) {
-						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
-						      		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
-						      		    clipboard.setPrimaryClip(clip);
-						     			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
-						    	    }
-						    	});
-						    	if(labels.get(addr) == null) {
-						        	tvToAddress2.setOnLongClickListener(new OnLongClickListener() {
-						        	    public boolean onLongClick(View arg0) {
-						                	promptDialogForAddToAddressBook(addr);            			
-						        	        return true;
-						        	    }
-						        	});
-						    	}
-						    	
-						    	latestBlock.setData(results[1]);
-						    	latestBlock.parse();
-						    	latest_block = latestBlock.getLatestBlock();
+								if(height > 01L && latest_block > 0L) {
+									tvValueConfirmations.setText(Long.toString((latest_block - height) + 1));
+								}
 
-						    	if(height > 01L && latest_block > 0L) {
-						        	tvValueConfirmations.setText(Long.toString((latest_block - height) + 1));
-						    	}
-						    	
-						    	if(progress != null) {
-							    	progress.dismiss();
-						    	}
-							
+								if(progress != null) {
+									progress.dismiss();
+								}
+
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -798,7 +751,288 @@ public class TxActivity extends Activity	{
 					e.printStackTrace();
 				}
 			}
-		}).start();
+		});
+
+//		final Handler handler = new Handler();
+//		new Thread(new Runnable() {
+//			@Override
+//			public void run() {
+//				try {
+//					final String result = getTxData(txUrl, blockUrl);
+//
+//					handler.post(new Runnable() {
+//						@Override
+//						public void run() {
+//							try {
+//
+//						    	String[] results = result.split("\\|");
+//
+//						    	transaction.setData(results[0]);
+//						    	transaction.parse();
+//						    	height = transaction.getHeight();
+//
+//						    	tvValueFee.setText(BlockchainUtil.formatBitcoin(BigInteger.valueOf(transaction.getFee())) + " BTC");
+//
+//						    	/*
+//			                    if(isSending)	{
+//							    	String strUpdatedResult = BlockchainUtil.formatBitcoin(BigInteger.valueOf(Long.parseLong(strResult)).subtract(BigInteger.valueOf(transaction.getFee())));
+//			                		tvResult.setText("SENT " + strUpdatedResult + " BTC");
+//			                    }
+//			                    */
+//
+//						    	((TextView)findViewById(R.id.link_label)).setOnTouchListener(new OnTouchListener() {
+//						            @Override
+//						            public boolean onTouch(View v, MotionEvent event) {
+//						            	Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("https://blockchain.info/tx/" + transaction.getHash()));
+//						            	startActivity(i);
+//						                return false;
+//						            }
+//						        });
+//
+//						        LayoutInflater inflater = (LayoutInflater)TxActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//
+//						        TableLayout froms = (TableLayout)findViewById(R.id.froms);
+//
+//						    	String from = null;
+//						    	String to = null;
+//						    	ArrayList<String> seenAddresses = new ArrayList<String>();
+//						    	int processed = 0;
+//						        //for(int i = 0; i < transaction.getInputs().size(); i++)	{
+//							    for(int i = 0; i < 1; i++)	{
+//
+//						        	if(seenAddresses.contains(transaction.getInputs().get(i).addr))	{
+//						        		continue;
+//						        	}
+//						        	else	{
+//							        	seenAddresses.add(transaction.getInputs().get(i).addr);
+//						        	}
+//
+//							        LinearLayout row = (LinearLayout)inflater.inflate(R.layout.layout_tx2, null, false);
+//						            tvFrom = (TextView)row.findViewById(R.id.from);
+//						            if(i > 0)	{
+//						            	tvFrom.setText("");
+//						            }
+//						            tvFromAddress = (TextView)row.findViewById(R.id.from_address);
+//						            tvFromAddress.setTypeface(TypefaceUtil.getInstance(TxActivity.this).getGravityBoldTypeface());
+//						            tvFromAddress.setTextColor(0xFF676767);
+//						            tvFromAddress2 = (TextView)row.findViewById(R.id.from_address2);
+//						            tvFromAddress2.setTypeface(TypefaceUtil.getInstance(TxActivity.this).getGravityLightTypeface());
+//						            tvFromAddress2.setTextColor(0xFF949ea3);
+//
+//						            if(isSending)	{
+//						                tvFrom.setTextColor(getResources().getColor(R.color.blockchain_red));
+//						                ((LinearLayout)findViewById(R.id.div1)).setBackgroundResource(R.color.blockchain_red);
+//						                ((LinearLayout)row.findViewById(R.id.div2)).setBackgroundResource(R.color.blockchain_red);
+//						                ((LinearLayout)findViewById(R.id.div3)).setBackgroundResource(R.color.blockchain_red);
+//						                ((LinearLayout)findViewById(R.id.div4)).setBackgroundResource(R.color.blockchain_red);
+//						            }
+//						            else	{
+//						                tvFrom.setTextColor(getResources().getColor(R.color.blockchain_green));
+//						                ((LinearLayout)findViewById(R.id.div1)).setBackgroundResource(R.color.blockchain_green);
+//						                ((LinearLayout)row.findViewById(R.id.div2)).setBackgroundResource(R.color.blockchain_green);
+//						                ((LinearLayout)findViewById(R.id.div3)).setBackgroundResource(R.color.blockchain_green);
+//						                ((LinearLayout)findViewById(R.id.div4)).setBackgroundResource(R.color.blockchain_green);
+//						            }
+//
+//						            /*
+//						        	if(transaction.getInputValues().size() == 1) {
+//						                ((TextView)row.findViewById(R.id.result2)).setVisibility(View.INVISIBLE);
+//						        	}
+//						        	else {
+//						                TextView tvResult2 = (TextView)row.findViewById(R.id.result2);
+//						                long value = transaction.getTotalValues().get(transaction.getInputs().get(i).addr);
+//						                String strValue = BlockchainUtil.formatBitcoin(BigInteger.valueOf(value).abs());
+////						                tvResult2.setText(strValue + " BTC");
+//						                tvResult2.setVisibility(View.GONE);
+////						                txAmounts.put(tvResult2, strValue);
+//						        	}
+//						        	*/
+//
+//							        //
+//							        // FROM
+//							        //
+//						        	if(labels.get(transaction.getInputs().get(i).addr) != null) {
+//						        		from = labels.get(transaction.getInputs().get(i).addr);
+//						        	}
+//						        	else {
+//						        		from = transaction.getInputs().get(i).addr;
+//						        		final String address = from;
+//						        	}
+//						        	/*
+//						        	if(from.length() > 15) {
+//						        		from = from.substring(0, 15) + "...";
+//						        	}
+//						        	*/
+//						        	String shortAddress = transaction.getInputs().get(i).addr;
+//						        	/*
+//						        	if(shortAddress.length() > 15) {
+//						        		shortAddress = shortAddress.substring(0, 15) + "...";
+//						        	}
+//						        	*/
+//
+//						        	if(labels.get(transaction.getInputs().get(i).addr) != null) {
+//							        	tvFromAddress.setText(from);
+//							        	tvFromAddress2.setText(shortAddress);
+//						        	}
+//						        	else {
+//							        	tvFromAddress.setText(shortAddress);
+//							        	tvFromAddress2.setVisibility(View.GONE);
+//						        	}
+//
+//						        	final String addr = transaction.getInputs().get(i).addr;
+//						        	tvFromAddress.setOnClickListener(new OnClickListener() {
+//						        	    public void onClick(View arg0) {
+//						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+//						          		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+//						          		    clipboard.setPrimaryClip(clip);
+//						         			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+//						        	    }
+//						        	});
+//						        	if(labels.get(addr) == null) {
+//						            	tvFromAddress.setOnLongClickListener(new OnLongClickListener() {
+//						            	    public boolean onLongClick(View arg0) {
+//						                    	promptDialogForAddToAddressBook(addr);
+//						            	        return true;
+//						            	    }
+//						            	});
+//						        	}
+//						        	tvFromAddress2.setOnClickListener(new OnClickListener() {
+//						        	    public void onClick(View arg0) {
+//						          			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+//						          		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+//						          		    clipboard.setPrimaryClip(clip);
+//						         			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+//						        	    }
+//						        	});
+//						        	if(labels.get(addr) == null) {
+//						            	tvFromAddress2.setOnLongClickListener(new OnLongClickListener() {
+//						            	    public boolean onLongClick(View arg0) {
+//						                    	promptDialogForAddToAddressBook(addr);
+//						            	        return true;
+//						            	    }
+//						            	});
+//						        	}
+//
+//						        	TableRow tablerow = new TableRow(TxActivity.this);
+//						            tablerow.setOrientation(TableRow.HORIZONTAL);
+//						            tablerow.addView(row);
+//						            froms.addView(tablerow);
+//
+//						            if(processed == 2) {
+//						            	break;
+//						            }
+//						            processed++;
+//
+//						        }
+//
+//						        String toTxAddress = null;
+//						        if(isSending) {
+//						        	toTxAddress = transaction.getOutputs().get(0).addr;
+//						        }
+//						        else {
+//						    		final WalletApplication application = (WalletApplication)TxActivity.this.getApplication();
+//						    		MyRemoteWallet wallet = application.getRemoteWallet();
+//						    		List<String> activeAddresses = Arrays.asList(wallet.getActiveAddresses());
+//
+//						        	if(transaction.getOutputs() != null && transaction.getOutputs().size() > 0) {
+//							        	for(int i = 0; i < transaction.getOutputs().size(); i++) {
+//							        		if(activeAddresses.contains(transaction.getOutputs().get(i).addr)) {
+//							        			toTxAddress = transaction.getOutputs().get(i).addr;
+//							        			break;
+//							        		}
+//							        	}
+//
+//							        	toTxAddress = transaction.getOutputs().get(0).addr;
+//						        	}
+//						        }
+//
+//						        //
+//						        // TO
+//						        //
+//						    	if(labels.get(toTxAddress) != null) {
+//						    		to = labels.get(toTxAddress);
+//						    	}
+//						    	else {
+//						    		final String address = toTxAddress;
+//						    		to = toTxAddress;
+//						    	}
+//						    	/*
+//						    	if(to.length() > 15) {
+//						    		to = to.substring(0, 15) + "...";
+//						    	}
+//						    	*/
+//						    	String shortAddress = toTxAddress;
+//						    	/*
+//						    	if(shortAddress.length() > 15) {
+//						    		shortAddress = shortAddress.substring(0, 15) + "...";
+//						    	}
+//						    	*/
+//
+//						    	if(labels.get(toTxAddress) != null) {
+//						        	tvToAddress.setText(to);
+//						        	tvToAddress2.setText(shortAddress);
+//						    	}
+//						    	else {
+//						        	tvToAddress.setText(shortAddress);
+//						        	tvToAddress2.setVisibility(View.GONE);
+//						    	}
+//
+//						    	final String addr = toTxAddress;
+//						    	tvToAddress.setOnClickListener(new OnClickListener() {
+//						    	    public void onClick(View arg0) {
+//						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+//						      		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+//						      		    clipboard.setPrimaryClip(clip);
+//						     			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+//						    	    }
+//						    	});
+//						    	if(labels.get(addr) == null) {
+//						        	tvToAddress.setOnLongClickListener(new OnLongClickListener() {
+//						        	    public boolean onLongClick(View arg0) {
+//						                	promptDialogForAddToAddressBook(addr);
+//						        	        return true;
+//						        	    }
+//						        	});
+//						    	}
+//						    	tvToAddress2.setOnClickListener(new OnClickListener() {
+//						    	    public void onClick(View arg0) {
+//						      			android.content.ClipboardManager clipboard = (android.content.ClipboardManager)TxActivity.this.getSystemService(Context.CLIPBOARD_SERVICE);
+//						      		    android.content.ClipData clip = android.content.ClipData.newPlainText("Address", addr);
+//						      		    clipboard.setPrimaryClip(clip);
+//						     			Toast.makeText(TxActivity.this, R.string.address_copied_clipboard, Toast.LENGTH_LONG).show();
+//						    	    }
+//						    	});
+//						    	if(labels.get(addr) == null) {
+//						        	tvToAddress2.setOnLongClickListener(new OnLongClickListener() {
+//						        	    public boolean onLongClick(View arg0) {
+//						                	promptDialogForAddToAddressBook(addr);
+//						        	        return true;
+//						        	    }
+//						        	});
+//						    	}
+//
+//						    	latestBlock.setData(results[1]);
+//						    	latestBlock.parse();
+//						    	latest_block = latestBlock.getLatestBlock();
+//
+//						    	if(height > 01L && latest_block > 0L) {
+//						        	tvValueConfirmations.setText(Long.toString((latest_block - height) + 1));
+//						    	}
+//
+//						    	if(progress != null) {
+//							    	progress.dismiss();
+//						    	}
+//
+//							} catch (Exception e) {
+//								e.printStackTrace();
+//							}
+//						}
+//					});
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}).start();
 	}
 
 }

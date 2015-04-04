@@ -5,9 +5,10 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONException;
+import org.json.JSONObject;
+//import org.json.simple.parser.JSONParser;
+//import org.json.simple.parser.ParseException;
 import org.spongycastle.util.encoders.Hex;
 
 import piuk.blockchain.android.EventListeners;
@@ -15,10 +16,7 @@ import piuk.blockchain.android.MyWallet;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.SuccessCallback;
-import piuk.blockchain.android.WalletApplication;
-//import piuk.blockchain.android.ui.dialogs.RekeyWalletDialog;
 import piuk.blockchain.android.ui.dialogs.RequestPasswordDialog;
-//import piuk.blockchain.android.ui.dialogs.WelcomeDialog;
 import piuk.blockchain.android.util.WalletUtils;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -119,8 +117,8 @@ public class PinEntryActivity extends AbstractWalletActivity {
 			throw new Exception("Invalid Server Response");
 		
 		try {
-			return (JSONObject) new JSONParser().parse(response);
-		} catch (ParseException e) {
+			return  new JSONObject(response);
+		} catch (Exception e) {
 			throw new Exception("Invalid Server Response");
 		}		
 	}
@@ -139,8 +137,8 @@ public class PinEntryActivity extends AbstractWalletActivity {
 			throw new Exception("Invalid Server Response");
 
 		try {
-			return (JSONObject) new JSONParser().parse(response);
-		} catch (ParseException e) {
+			return new JSONObject(response);
+		} catch (Exception e) {
 			throw new Exception("Invalid Server Response");
 		}		
 	}
@@ -256,7 +254,7 @@ public class PinEntryActivity extends AbstractWalletActivity {
 						application.didEncounterFatalPINServerError = false;
 
 						//"code" == 2 means the PIN is incorrect
-						if (!response.containsKey("code") || ((Number)response.get("code")).intValue() != 2) {
+						if (!response.has("code") || ((Number)response.get("code")).intValue() != 2) {
 							/* **********************
 							clearPrefValues(application);
 							*/
@@ -266,7 +264,11 @@ public class PinEntryActivity extends AbstractWalletActivity {
 							public void run() {
 								disableKeyPad(false);
 
-								Toast.makeText(application, (String)response.get("error"), Toast.LENGTH_SHORT).show();	
+								try {
+									Toast.makeText(application, response.getString("error"), Toast.LENGTH_SHORT).show();
+								} catch (JSONException e) {
+									e.printStackTrace();
+								}
 
 								begin();
 							}
@@ -482,8 +484,12 @@ public class PinEntryActivity extends AbstractWalletActivity {
 
 												handler.post(new Runnable() {
 													public void run() {
-														Toast.makeText(application, (String) response.get("error"), Toast.LENGTH_LONG)
-														.show();	
+														try {
+															Toast.makeText(application, response.getString("error"), Toast.LENGTH_LONG)
+                                                            .show();
+														} catch (JSONException e) {
+															e.printStackTrace();
+														}
 
 														disableKeyPad(false);
 

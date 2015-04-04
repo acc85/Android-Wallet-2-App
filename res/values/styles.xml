@@ -10,9 +10,22 @@
     </style>
 
 
-
+    <style name="Theme.LightActionBar" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="actionBarTheme">@style/MyApp.ActionBarTheme</item>
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+        <item name="android:windowActionBar">false</item>
+    </style>
 
     <style name="Theme.MyPIN" parent="@android:style/Theme.Black.NoTitleBar" />
+
+    <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="color">@android:color/white</item>
+    </style>
+
+    <style name="MyApp.ActionBarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <!-- THIS is where you can color the arrow! -->
+        <item name="colorControlNormal">@android:color/white</item>
+    </style>
 
         <!--
         Base application theme, dependent on API level. This theme is replaced

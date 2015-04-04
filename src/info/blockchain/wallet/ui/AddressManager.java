@@ -21,6 +21,8 @@ import com.google.bitcoin.core.NetworkParameters;
 import com.google.bitcoin.params.MainNetParams;
 import com.google.bitcoin.uri.BitcoinURI;
 
+import org.json.JSONException;
+
 import piuk.blockchain.android.EventListeners;
 import piuk.blockchain.android.MyRemoteWallet;
 import piuk.blockchain.android.Constants;
@@ -52,7 +54,7 @@ public class AddressManager {
 		this.handler = new Handler();
 	}	
 		
-	public BigInteger getBalance(final String address) {
+	public BigInteger getBalance(final String address) throws JSONException {
 		return this.blockchainWallet.getBalance(address);
 	}
 	

@@ -36,9 +36,10 @@ import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.simple.JSONValue;
-import org.json.simple.parser.JSONParser;
 import org.spongycastle.util.encoders.Hex;
 
 import info.blockchain.wallet.ui.Models.WalletObject;
@@ -175,7 +176,7 @@ public class MyRemoteWallet extends MyWallet {
 		return multiAddrBalancesRoot;
 	}
 
-	public BigInteger getBalanceOfAddress(String address) {
+	public BigInteger getBalanceOfAddress(String address) throws JSONException {
 		if (multiAddrBalancesRoot == null) return null;
 		JSONObject addressRoot = multiAddrBalancesRoot.get(address);	    
 		return BigInteger.valueOf(((Number)addressRoot.get("final_balance")).longValue());
@@ -228,15 +229,17 @@ public class MyRemoteWallet extends MyWallet {
 
 		final String response = postURL("https://" + Constants.BLOCKCHAIN_DOMAIN + "/api/receive", args.toString());
 
-		JSONObject object = (JSONObject) new JSONParser().parse(response);
+		JSONObject object = new JSONObject(response);
 
 		return (String)object.get("input_address");
 	}
 
 
-	public List<WalletObject> getWalletAddressesAndBalanceAndWatchType(){
+	public List<WalletObject> getWalletAddressesAndBalanceAndWatchType() throws JSONException {
 		List<WalletObject> list = new ArrayList<WalletObject>();
 		String walletAddress = "";
+
+
 		for (Map<String, Object> map : getKeysMap()) {
 			if (map.get("tag") == null || (Long) map.get("tag") == 0) {
 				walletAddress = (String) map.get("addr");
@@ -312,14 +315,14 @@ public class MyRemoteWallet extends MyWallet {
 		return list;
 	}
 
-	public void setSentAndReceivedValuesForWallet(WalletObject wallet){
+	public void setSentAndReceivedValuesForWallet(WalletObject wallet) throws JSONException {
 		final Map<String, JSONObject> multiAddrBalancesRoot = getMultiAddrBalancesRoot();
 		final JSONObject addressRoot = multiAddrBalancesRoot.get(wallet.getWalletAddress());
 		wallet.setTotalReceived(BigInteger.valueOf(((Number)addressRoot.get("total_received")).longValue()));
 		wallet.setTotalSent(BigInteger.valueOf(((Number)addressRoot.get("total_sent")).longValue()));
 	}
 
-	public synchronized BigInteger getBalance(String address) {
+	public synchronized BigInteger getBalance(String address) throws JSONException {
 		if (this.multiAddrBalancesRoot != null && this.multiAddrBalancesRoot.containsKey(address)) {
 			return BigInteger.valueOf(((Number)this.multiAddrBalancesRoot.get(address).get("final_balance")).longValue());	
 		}
@@ -495,25 +498,57 @@ public class MyRemoteWallet extends MyWallet {
 		return null;
 	}
 
+	public Map<String, Object> generateMap(JSONObject jsonObject){
+		Map<String, Object> hashMap = new HashMap<>();
+		Iterator<String> nameItr = jsonObject.keys();
+		while(nameItr.hasNext()) {
+			String name = nameItr.next();
+			try {
+				hashMap.put(name, jsonObject.get(name));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		return hashMap;
+	}
+
 	public void parseMultiAddr(String response, boolean notifications) throws Exception {
 
 		transactions.clear();
 
 		BigInteger previousBalance = final_balance;
 
-		Map<String, Object> top = (Map<String, Object>) JSONValue.parse(response);
+//		Map<String, Object> top = (Map<String, Object>) JSONValue.parse(response);
+		JSONObject top = new JSONObject(response);
 
-		this.multiAddrRoot = (JSONObject) top;
+//		Map<String, Object> top = new HashMap<>();
+//
+//		Iterator<String> objectItr = object.keys();
+//		while(objectItr.hasNext()) {
+//			String name = objectItr.next();
+//			top.put(name, object.getString(name));
+//		}
 
-		Map<String, Object> info_obj = (Map<String, Object>) top.get("info");
+		this.multiAddrRoot = top;
 
-		Map<String, Object> block_obj = (Map<String, Object>) info_obj.get("latest_block");
+		JSONObject info_obj = top.getJSONObject("info");
+		JSONObject block_obj = info_obj.getJSONObject("latest_block");
+
+//		Map<String, Object> info_obj = generateMap(new JSONObject(top.get("info").toString()));
+//		Map<String, Object> block_obj = generateMap(new JSONObject(info_obj.get("latest_block").toString()));
+
+//		Map<String, Object> info_obj = (Map<String, Object>) top.get("info");
+
+//		Map<String, Object> block_obj = (Map<String, Object>) info_obj.get("latest_block");
 
 		if (block_obj != null) {
 			Sha256Hash hash = new Sha256Hash(Hex.decode((String)block_obj.get("hash")));
-			int blockIndex = ((Number)block_obj.get("block_index")).intValue();
-			int blockHeight = ((Number)block_obj.get("height")).intValue();
-			long time = ((Number)block_obj.get("time")).longValue();
+			int blockIndex = block_obj.getInt("block_index");
+			int blockHeight = block_obj.getInt("height");
+			long time = block_obj.getLong("time");
+//			int blockIndex = ((Number)block_obj.get("block_index")).intValue();
+//			int blockHeight = ((Number)block_obj.get("height")).intValue();
+//			long time = ((Number)block_obj.get("time")).longValue();
 
 			MyBlock block = new MyBlock();
 
@@ -525,23 +560,38 @@ public class MyRemoteWallet extends MyWallet {
 			this.latestBlock = block;
 		}
 
-		List<JSONObject> multiAddrBalances = (List<JSONObject>) top.get("addresses");
+//		List<JSONObject> multiAddrBalances = new ArrayList<>();
+		JSONArray multiAddrBalances = top.getJSONArray("addresses");
+
+//		for(int i = 0; i< jsonArray.length(); i++){
+//			multiAddrBalances.add(jsonArray.getJSONObject(i));
+//		}
+//		List<JSONObject> multiAddrBalances = (List<JSONObject>) top.get("addresses");
 
 		Map<String, JSONObject> multiAddrBalancesRoot = new HashMap<String, JSONObject>();
 
-		for (JSONObject obj : multiAddrBalances) {
-			multiAddrBalancesRoot.put((String) obj.get("address"), obj);
+		for(int i = 0; i < multiAddrBalances.length(); i++){
+			JSONObject jsonObject = multiAddrBalances.getJSONObject(i);
+			multiAddrBalancesRoot.put(jsonObject.getString("address"),jsonObject);
 		}
+
+
+
+
+
+
+//		for (JSONObject obj : multiAddrBalances) {
+//			multiAddrBalancesRoot.put((String) obj.get("address"), obj);
+//		}
 
 		this.multiAddrBalancesRoot = multiAddrBalancesRoot;
 
-		Map<String, Object> symbol_local = (Map<String, Object>) info_obj.get("symbol_local");
+		JSONObject symbol_local = info_obj.getJSONObject("symbol_local");
 
 		boolean didUpdateCurrency = false;
-
-		if (symbol_local != null && symbol_local.containsKey("code")) {
-			String currencyCode = (String) symbol_local.get("code");
-			Double currencyConversion = (Double) symbol_local.get("conversion");
+		if (symbol_local != null && symbol_local.has("code")) {
+			String currencyCode = symbol_local.getString("code");
+			Double currencyConversion = symbol_local.getDouble("conversion");
 
 			if (currencyConversion == null)
 				currencyConversion = 0d;
@@ -554,10 +604,33 @@ public class MyRemoteWallet extends MyWallet {
 		}
 
 
-		Map<String, Object> symbol_btc = (Map<String, Object>) info_obj.get("symbol_btc");
+//		Map<String, Object> symbol_local = (Map<String, Object>) info_obj.get("symbol_local");
+//		Map<String, Object> symbol_local = generateMap(new JSONObject(info_obj.get("symbol_local").toString()));
+
+//		boolean didUpdateCurrency = false;
+
+//		if (symbol_local != null && symbol_local.containsKey("code")) {
+//			String currencyCode = (String) symbol_local.get("code");
+//			Double currencyConversion = Double.valueOf(symbol_local.get("conversion").toString());
+//
+//			if (currencyConversion == null)
+//				currencyConversion = 0d;
+//
+//			if (this.localCurrencyCode == null || !this.localCurrencyCode.equals(currencyCode) || this.localCurrencyConversion != currencyConversion) {
+//				this.localCurrencyCode = currencyCode;
+//				this.localCurrencyConversion = currencyConversion;
+//				didUpdateCurrency = true;
+//			}
+//		}
+
+//
+//		Map<String, Object> symbol_btc = (Map<String, Object>) info_obj.get("symbol_btc");
+
+		Map<String, Object> symbol_btc = generateMap(new JSONObject(info_obj.get("symbol_btc").toString()));
+
 		if (symbol_btc != null && symbol_btc.containsKey("code")) {
 			String currencyCode = (String) symbol_local.get("code");
-			Double currencyConversion = (Double) symbol_local.get("conversion");
+			Double currencyConversion = Double.valueOf(symbol_local.get("conversion").toString());
 
 			if (currencyConversion == null)
 				currencyConversion = 0d;
@@ -573,32 +646,51 @@ public class MyRemoteWallet extends MyWallet {
 			EventListeners.invokeCurrencyDidChange();
 		}
 
-		if (top.containsKey("mixer_fee")) {
-			sharedFee = ((Number)top.get("mixer_fee")).doubleValue();
+//		if (top.containsKey("mixer_fee")) {
+//			sharedFee = ((Number)top.get("mixer_fee")).doubleValue();
+//		}
+
+		if (top.has("mixer_fee")) {
+			sharedFee = top.getDouble("mixer_fee");
 		}
 
-		Map<String, Object> wallet_obj = (Map<String, Object>) top.get("wallet");
+		JSONObject wallet_obj = new JSONObject(top.get("wallet").toString());
 
-		this.final_balance = BigInteger.valueOf(((Number)wallet_obj.get("final_balance")).longValue());
-		this.total_sent = BigInteger.valueOf(((Number)wallet_obj.get("total_sent")).longValue());
-		this.total_received = BigInteger.valueOf(((Number)wallet_obj.get("total_received")).longValue());
+		this.final_balance = BigInteger.valueOf(wallet_obj.getLong("final_balance"));
+		this.total_sent = BigInteger.valueOf(wallet_obj.getLong("total_sent"));
+		this.total_received = BigInteger.valueOf(wallet_obj.getLong("total_received"));
+		System.out.println("txs is:"+top.get("txs"));
 
-		List<Map<String, Object>> transactions = (List<Map<String, Object>>) top.get("txs");
+		JSONArray transactions = new JSONArray(top.get("txs").toString());
 
 		MyTransaction newestTransaction = null;
 		if (transactions != null) {
-			for (Map<String, Object> transactionDict : transactions) {
+			for (int t = 0; t < transactions.length(); t++) {
+				JSONObject transactionObject = transactions.getJSONObject(t);
+				Map<String, Object> transactionDict = generateMap(transactionObject);
 				MyTransaction tx = MyTransaction.fromJSONDict(transactionDict);
-
 				if (tx == null)
 					continue;
-
 				if (newestTransaction == null)
 					newestTransaction = tx;
-
 				addTransaction(tx);
 			}
 		}
+
+//		MyTransaction newestTransaction = null;
+//		if (transactions != null) {
+//			for (Map<String, Object> transactionDict : transactions) {
+//				MyTransaction tx = MyTransaction.fromJSONDict(transactionDict);
+//
+//				if (tx == null)
+//					continue;
+//
+//				if (newestTransaction == null)
+//					newestTransaction = tx;
+//
+//				addTransaction(tx);
+//			}
+//		}
 
 		if (notifications) {
 			if (this.final_balance.compareTo(previousBalance) != 0 && newestTransaction != null) {
@@ -1484,7 +1576,7 @@ public class MyRemoteWallet extends MyWallet {
 		params.put("format", "json");
 
 		String response = securePost(WebROOT + "wallet", params);
-		JSONObject obj  = (JSONObject) new JSONParser().parse(response);
+		JSONObject obj  = new JSONObject(response);
 		setEmail((String)obj.get("email"));
 		setSmsNumber((String)obj.get("sms_number"));
 
@@ -1664,7 +1756,7 @@ public class MyRemoteWallet extends MyWallet {
 
 		String response = fetchURL(WebROOT + "wallet/" + guid + "?format=json&resend_code=false");
 
-		JSONObject object = (JSONObject) new JSONParser().parse(response);
+		JSONObject object = new JSONObject(response);
 
 		String payload = (String) object.get("payload");
 		if (payload == null || payload.length() == 0) {
@@ -1740,7 +1832,6 @@ public class MyRemoteWallet extends MyWallet {
 
 	public synchronized String setPayload(JSONObject walletJSONObj) throws Exception {
 		handleWalletPayloadObj(walletJSONObj);
-
 		return setPayload(walletJSONObj.get("payload").toString());
 	}
 
@@ -1766,14 +1857,23 @@ public class MyRemoteWallet extends MyWallet {
 	}
 
 
-	public void handleWalletPayloadObj(JSONObject obj) {
-		Map<String, Object> symbol_local = (Map<String, Object>) obj.get("symbol_local");
+	public void handleWalletPayloadObj(JSONObject obj) throws JSONException {
+
+		System.out.println("Obj:"+obj.get("symbol_local"));
+		JSONObject jsonObject = obj.getJSONObject("symbol_local");
+		System.out.println(jsonObject);
+		Iterator<String> nameItr = jsonObject.keys();
+		Map<String, Object> symbol_local =  new HashMap<String, Object>();
+		while(nameItr.hasNext()) {
+			String name = nameItr.next();
+			symbol_local.put(name, jsonObject.getString(name));
+		}
 
 		boolean didUpdateCurrency = false;
 
 		if (symbol_local != null && symbol_local.containsKey("code")) {
 			String currencyCode = (String) symbol_local.get("code");
-			Double currencyConversion = (Double) symbol_local.get("conversion");
+			Double currencyConversion = Double.valueOf(symbol_local.get("conversion").toString());
 
 			if (currencyConversion == null)
 				currencyConversion = 0d;
@@ -1786,10 +1886,18 @@ public class MyRemoteWallet extends MyWallet {
 		}
 
 
-		Map<String, Object> symbol_btc = (Map<String, Object>) obj.get("symbol_btc");
+		JSONObject symbol_btc_object = obj.getJSONObject("symbol_btc");
+		Iterator<String> symbol_btc_object_itr = symbol_btc_object.keys();
+		Map<String, Object> symbol_btc =  new HashMap<String, Object>();
+		while(symbol_btc_object_itr.hasNext()) {
+			String name = symbol_btc_object_itr.next();
+			symbol_btc.put(name, symbol_btc_object.getString(name));
+		}
+
+//		Map<String, Object> symbol_btc = (Map<String, Object>) obj.get("symbol_btc");
 		if (symbol_btc != null && symbol_btc.containsKey("code")) {
 			String currencyCode = (String) symbol_local.get("code");
-			Double currencyConversion = (Double) symbol_local.get("conversion");
+			Double currencyConversion = Double.valueOf(symbol_local.get("conversion").toString());
 
 			if (currencyConversion == null)
 				currencyConversion = 0d;
@@ -1805,7 +1913,7 @@ public class MyRemoteWallet extends MyWallet {
 			EventListeners.invokeCurrencyDidChange();
 		}
 
-		if (obj.containsKey("sync_pubkeys")) {
+		if (obj.has("sync_pubkeys")) {
 			sync_pubkeys = Boolean.valueOf(obj.get("sync_pubkeys").toString());
 		}
 	}
@@ -1817,7 +1925,7 @@ public class MyRemoteWallet extends MyWallet {
 			throw new Exception("Error downloading wallet");
 		}
 
-		JSONObject obj = (JSONObject) new JSONParser().parse(response);
+		JSONObject obj = new JSONObject(response);
 
 		String payload = obj.get("payload").toString();
 
@@ -1839,7 +1947,7 @@ public class MyRemoteWallet extends MyWallet {
 			throw new Exception("Error downloading wallet");
 		}
 
-		JSONObject obj = (JSONObject) new JSONParser().parse(response);
+		JSONObject obj = new JSONObject(response);
 
 		String payload = obj.get("payload").toString();
 
