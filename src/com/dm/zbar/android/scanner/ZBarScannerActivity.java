@@ -77,12 +77,6 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
 
 	}
 
-	public Camera.PreviewCallback getPreviewCallback(){
-		return this;
-	}
-
-
-
 
 	public void setupScanner() {
 		mScanner = new ImageScanner();
@@ -161,39 +155,7 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
 				}
 			}
 		});
-//		mCamera = openFrontFacingCameraGingerbread();
-//		if(mCamera == null) {
-//			// Cancel request if mCamera is null.
-//			cancelRequest();
-//			return;
-//		}
-//
-//		mPreview.setCamera(mCamera);
-//		mPreview.showSurfaceView();
-//
-//		mPreviewing = true;
-		// Open the default i.e. the first rear facing camera.
-//		AsyncTask.execute(new Runnable() {
-//			@Override
-//			public void run() {
-//				mCamera = openFrontFacingCameraGingerbread();
-//				new Handler(getMainLooper()).post(new Runnable() {
-//					@Override
-//					public void run() {
-//						if(mCamera == null) {
-//							// Cancel request if mCamera is null.
-//							cancelRequest();
-//							return;
-//						}
-//
-//						mPreview.setCamera(mCamera);
-//						mPreview.showSurfaceView();
-//
-//						mPreviewing = true;
-//					}
-//				});
-//			}
-//		});
+
 	}
 
 	@Override
