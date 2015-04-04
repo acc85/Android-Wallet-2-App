@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.Window;
 import android.view.WindowManager;
@@ -45,13 +47,42 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
 		mAutoFocusHandler = new Handler();
 
 		// Create and configure the ImageScanner;
-		setupScanner();
+		AsyncTask.execute(new Runnable() {
+			@Override
+			public void run() {
+				setupScanner();
+				mCamera = openFrontFacingCameraGingerbread();
+				if(mCamera == null) {
+					// Cancel request if mCamera is null.
+					cancelRequest();
+					return;
+				}
+				new Handler(getMainLooper()).post(new Runnable() {
+					@Override
+					public void run() {
+						mPreview = new CameraPreview(ZBarScannerActivity.this, ZBarScannerActivity.this, autoFocusCB);
+						setContentView(mPreview);
+						mPreview.setCamera(mCamera);
+						mPreview.showSurfaceView();
+						mPreviewing = true;
+					}
+				});
+			}
+		});
+
 
 		// Create a RelativeLayout container that will hold a SurfaceView,
 		// and set it as the content of our activity.
-		mPreview = new CameraPreview(this, this, autoFocusCB);
-		setContentView(mPreview);
+
+
 	}
+
+	public Camera.PreviewCallback getPreviewCallback(){
+		return this;
+	}
+
+
+
 
 	public void setupScanner() {
 		mScanner = new ImageScanner();
@@ -107,19 +138,62 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
 	@Override
 	protected void onResume() {
 		super.onResume();
-
+//		mAutoFocusHandler = new Handler();
+		AsyncTask.execute(new Runnable() {
+			@Override
+			public void run() {
+				if(mCamera == null) {
+					mCamera = openFrontFacingCameraGingerbread();
+					if (mCamera == null) {
+						// Cancel request if mCamera is null.
+						cancelRequest();
+						return;
+					}
+					new Handler(Looper.getMainLooper()).post(new Runnable() {
+						@Override
+						public void run() {
+							mPreview.mAutoFocusCallback = autoFocusCB;
+							mPreview.setCamera(mCamera);
+							mPreview.showSurfaceView();
+							mPreviewing = true;
+						}
+					});
+				}
+			}
+		});
+//		mCamera = openFrontFacingCameraGingerbread();
+//		if(mCamera == null) {
+//			// Cancel request if mCamera is null.
+//			cancelRequest();
+//			return;
+//		}
+//
+//		mPreview.setCamera(mCamera);
+//		mPreview.showSurfaceView();
+//
+//		mPreviewing = true;
 		// Open the default i.e. the first rear facing camera.
-		mCamera = openFrontFacingCameraGingerbread();
-		if(mCamera == null) {
-			// Cancel request if mCamera is null.
-			cancelRequest();
-			return;
-		}
-
-		mPreview.setCamera(mCamera);
-		mPreview.showSurfaceView();
-
-		mPreviewing = true;
+//		AsyncTask.execute(new Runnable() {
+//			@Override
+//			public void run() {
+//				mCamera = openFrontFacingCameraGingerbread();
+//				new Handler(getMainLooper()).post(new Runnable() {
+//					@Override
+//					public void run() {
+//						if(mCamera == null) {
+//							// Cancel request if mCamera is null.
+//							cancelRequest();
+//							return;
+//						}
+//
+//						mPreview.setCamera(mCamera);
+//						mPreview.showSurfaceView();
+//
+//						mPreviewing = true;
+//					}
+//				});
+//			}
+//		});
 	}
 
 	@Override
@@ -156,6 +230,8 @@ public class ZBarScannerActivity extends Activity implements Camera.PreviewCallb
 		setResult(Activity.RESULT_CANCELED, dataIntent);
 		finish();
 	}
+
+
 
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		Camera.Parameters parameters = camera.getParameters();
