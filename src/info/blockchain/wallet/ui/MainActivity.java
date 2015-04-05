@@ -456,9 +456,19 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 				}
 			});
 		}else if(item.getItemId() == R.id.main_qr_scanner){
-			Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
-			intent.putExtra(ZBarConstants.SCAN_MODES, new int[] { Symbol.QRCODE } );
-			startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+			if(TimeOutUtil.getInstance().isTimedOut()) {
+				Intent intent = new Intent(this, StartActivity.class);
+				String navigateTo = getIntent().getStringExtra("navigateTo");
+				intent.putExtra("navigateTo", navigateTo);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+				intent.putExtra("verified", true);
+				startActivity(intent);
+				return true;
+			}else {
+				Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
+				intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{Symbol.QRCODE});
+				startActivityForResult(intent, ZBAR_SCANNER_REQUEST);
+			}
 		}
 
         return super.onOptionsItemSelected(item);
