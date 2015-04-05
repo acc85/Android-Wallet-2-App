@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,6 +14,9 @@ import java.util.Map;
 
 //import org.json.simple.JSONObject;
 
+import info.blockchain.wallet.ui.AddressBookActivity;
+import info.blockchain.wallet.ui.AddressManager;
+import info.blockchain.wallet.ui.BitcoinAddressCheck;
 import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
 import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 import info.blockchain.wallet.ui.Utilities.WalletUtil;
@@ -810,7 +813,7 @@ public class ReceiveFragment extends Fragment   {
  		if(wallet != null) {
  			activeAddresses = Arrays.asList(wallet.getActiveAddresses());
  			labels = wallet.getLabelMap();
- 	        AddressManager addressManager = new AddressManager(wallet, WalletUtil.getInstance(getActivity()).getWalletApplication(), getActivity());        
+ 	        AddressManager addressManager = new AddressManager(wallet, WalletUtil.getInstance(getActivity()).getWalletApplication(), getActivity());
  	        magicData.clear();
  	        
  	        filteredDisplayList = new ArrayList<HashMap<String,String>>();

@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;

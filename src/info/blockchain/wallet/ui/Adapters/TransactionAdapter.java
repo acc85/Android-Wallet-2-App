@@ -202,6 +202,11 @@ public class TransactionAdapter extends BaseAdapter {
 
     }
 
+
+    public void notifyDataChange(){
+        this.notifyDataSetChanged();;
+    }
+
     public class ViewHolder{
 
         TextView ts;

@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -32,6 +32,8 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.security.SecureRandom;
 
+import info.blockchain.wallet.ui.PinCreateActivity;
+import info.blockchain.wallet.ui.SecureWallet;
 import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
 import info.blockchain.wallet.ui.Utilities.WalletUtil;
 import piuk.blockchain.android.Constants;

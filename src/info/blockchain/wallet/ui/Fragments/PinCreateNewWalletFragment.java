@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import info.blockchain.wallet.ui.PinCreateActivity;
 import piuk.blockchain.android.R;
 /**
  * Created by Raymond on 03/04/2015.

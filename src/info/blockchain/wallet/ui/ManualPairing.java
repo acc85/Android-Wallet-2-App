@@ -3,7 +3,6 @@ package info.blockchain.wallet.ui;
 import java.util.UUID;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -11,11 +10,8 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.text.InputType;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -142,7 +138,7 @@ public class ManualPairing extends Activity	{
 										edit.putBoolean("paired", true);
 										edit.commit();
 
-							        	Intent intent = new Intent(ManualPairing.this, PinEntryActivity.class);
+							        	Intent intent = new Intent(ManualPairing.this, PinActivity.class);
 							        	intent.putExtra("S", "1");
 										intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 							    		startActivity(intent);

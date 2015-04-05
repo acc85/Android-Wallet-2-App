@@ -22,6 +22,9 @@
     <color name="button_effect_color">#64fff5f8</color>
     <color name="button_effect_default_color">#5effffff</color>
 
+    <color name="send_fragment_camera_color_default">#FF808080</color>
+    <color name="send_fragment_camera_color_selected">#FFffffff</color>
+
     <color name="white">#FFFFFF</color>
     	
 </resources>

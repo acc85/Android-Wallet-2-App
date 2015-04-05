@@ -14,7 +14,9 @@ public class DateUtil {
 	private static Date now = null;
 	private static Context context = null;
 
-	private DateUtil() { ; }
+	private DateUtil() {
+
+	}
 
 	public static DateUtil getInstance(Context ctx) {
 		

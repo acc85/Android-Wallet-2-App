@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import info.blockchain.api.ExchangeRates;
+import info.blockchain.wallet.ui.DownloadFXRatesTask;
+import info.blockchain.wallet.ui.PairingHelp;
+import info.blockchain.wallet.ui.PinCreateActivity;
 import info.blockchain.wallet.ui.Utilities.DeviceUtil;
 import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 import piuk.blockchain.android.R;

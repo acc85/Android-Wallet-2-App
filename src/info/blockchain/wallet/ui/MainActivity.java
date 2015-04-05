@@ -38,7 +38,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ImageView;
 import android.support.v4.content.LocalBroadcastManager;
@@ -46,11 +45,13 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
-import android.os.StrictMode;
 //import android.util.Log;
 
 import info.blockchain.wallet.ui.Adapters.NavDrawerListAdapter;
 import info.blockchain.wallet.ui.Adapters.TabsPagerAdapter;
+import info.blockchain.wallet.ui.Fragments.BalanceFragment;
+import info.blockchain.wallet.ui.Fragments.ReceiveFragment;
+import info.blockchain.wallet.ui.Fragments.SendFragment;
 import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
 import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
 import info.blockchain.wallet.ui.Utilities.WalletUtil;
@@ -214,11 +215,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 		viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 			@Override
 			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
 			}
 
 			@Override
 			public void onPageSelected(int position) {
+				if(position == 1){
+					((BalanceFragment)mAdapter.getFragment(1)).updateLists();
+				}
 				invalidateOptionsMenu();
 			}
 

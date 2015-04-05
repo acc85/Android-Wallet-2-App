@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -22,29 +22,31 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
+
 import org.json.JSONObject;
 import org.spongycastle.util.encoders.Hex;
 
 import java.security.SecureRandom;
 
 import info.blockchain.api.ExchangeRates;
-import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
+import info.blockchain.wallet.ui.CurrencyExchange;
+import info.blockchain.wallet.ui.DownloadFXRatesTask;
+import info.blockchain.wallet.ui.MainActivity;
+import info.blockchain.wallet.ui.OtherCurrencyExchange;
+import info.blockchain.wallet.ui.SetupActivity;
+import info.blockchain.wallet.ui.StartActivity;
 import info.blockchain.wallet.ui.Utilities.DeviceUtil;
-import info.blockchain.wallet.ui.Utilities.ProgressUtil;
 import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.MyWallet;
 import piuk.blockchain.android.R;
-import piuk.blockchain.android.SuccessCallback;
 import piuk.blockchain.android.WalletApplication;
-import piuk.blockchain.android.ui.dialogs.RequestForgotPasswordDialog;
 import piuk.blockchain.android.util.ConnectivityStatus;
 
 /**
  * Created by Raymond on 29/03/2015.
  */
-public class PinEntryFragment extends Fragment {
+public class PinCreateFragment extends Fragment {
 
     String userEntered = "";
     final int PIN_LENGTH = 4;
@@ -54,12 +56,15 @@ public class PinEntryFragment extends Fragment {
     TextView pinBox1 = null;
     TextView pinBox2 = null;
     TextView pinBox3 = null;
-    View validatePinLayout;
-    View keyPadLayout;
+
+    private String unconfirmedPin;
 
     TextView[] pinBoxArray = null;
 
     TextView statusView = null;
+
+    View validatePinLayout;
+    View keyPadLayout;
 
     Button button0 = null;
     Button button1 = null;
@@ -71,7 +76,7 @@ public class PinEntryFragment extends Fragment {
     Button button7 = null;
     Button button8 = null;
     Button button9 = null;
-    Button buttonForgot = null;
+    Button buttonReset = null;
     Button buttonDeleteBack = null;
 
     private boolean validating = true;
@@ -87,21 +92,19 @@ public class PinEntryFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+
         userEntered = "";
-        View view = inflater.inflate(R.layout.activity_pin_entry,null);
+        View view = inflater.inflate(R.layout.activity_pin_creating,null);
         if (DeviceUtil.getInstance(getActivity()).isSmallScreen())
-            view = inflater.inflate(R.layout.activity_pin_entry_small,null);
+            view = inflater.inflate(R.layout.activity_pin_creating_small,null);
+
+        titleView = (TextView)view.findViewById(R.id.titleBox);
+        titleView.setText(R.string.create_pin);
 
         validatePinLayout = view.findViewById(R.id.validatingPinLayout);
         keyPadLayout = view.findViewById(R.id.numericPad);
+
         Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(), "Roboto-Regular.ttf");
-        buttonForgot = (Button) view.findViewById(R.id.buttonForgot);
-        buttonForgot.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                ((StartActivity)getActivity()).requestPassword();
-            }
-        });
-        buttonForgot.setTypeface(typeface);
 
         buttonDeleteBack = (Button) view.findViewById(R.id.buttonDeleteBack);
         buttonDeleteBack.setOnClickListener(new View.OnClickListener() {
@@ -147,78 +150,38 @@ public class PinEntryFragment extends Fragment {
                 if (userEntered.length() < PIN_LENGTH) {
                     userEntered = userEntered + pressedButton.getText().toString().substring(0, 1);
 
-
                     // Update pin boxes
                     pinBoxArray[userEntered.length() - 1].setText("8");
 
                     if (userEntered.length() == PIN_LENGTH) {
                         keyPadLockedFlag = true;
-                        if (validating) {
-                            if (userEntered.equals("0000")) {
+                        if (userInput != null) {
+                            if (userInput.equals("0000")) {
                                 Toast.makeText(getActivity(), R.string.zero_pin, Toast.LENGTH_SHORT).show();
+                                clearBoxes();
                                 keyPadLockedFlag = false;
                                 return;
                             }
-                            validatePIN(userEntered);
-                        } else {
-                            if (userInput != null) {
-                                if (userInput.equals("0000")) {
-                                    Toast.makeText(getActivity(), R.string.zero_pin, Toast.LENGTH_SHORT).show();
-                                    emptyPinBoxes();
-                                    keyPadLockedFlag = false;
-                                    return;
-                                }
-                                if (userInput.equals(userEntered)) {
-
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Looper.prepare();
-                                            final WalletApplication application = (WalletApplication) getActivity().getApplication();
-                                            // Save PIN
-                                            try {
-                                                byte[] bytes = new byte[16];
-                                                SecureRandom random = new SecureRandom();
-                                                random.nextBytes(bytes);
-                                                final String key = new String(Hex.encode(bytes), "UTF-8");
-                                                random.nextBytes(bytes);
-                                                final String value = new String(Hex.encode(bytes), "UTF-8");
-                                                final JSONObject response = ((StartActivity)getActivity()).apiStoreKey(key, value, userInput);
-                                                Toast.makeText(application, response.toString(), Toast.LENGTH_LONG).show();
-                                                Toast.makeText(getActivity(), "PIN saved", Toast.LENGTH_SHORT).show();
-                                                Intent intent = new Intent(getActivity(), MainActivity.class);
-                                                String navigateTo = getActivity().getIntent().getStringExtra("navigateTo");
-                                                intent.putExtra("navigateTo", navigateTo);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            } catch (Exception e) {
-                                                Toast.makeText(application, e.toString(), Toast.LENGTH_LONG).show();
-                                                e.printStackTrace();
-                                            }
-                                            Looper.loop();
-
-                                        }
-                                    }).start();
-
-                                }
-                            }
                         }
-
+                        if (unconfirmedPin != null) {
+                            if (userEntered.equalsIgnoreCase(unconfirmedPin)) {
+                                userInput = userEntered;
+                                savePin();
+                            } else {
+                                Toast.makeText(getActivity(), "Confirmation incorrect, try again", Toast.LENGTH_LONG).show();
+                                titleView.setText(R.string.confirm_pin);
+                                clearBoxes();
+                                keyPadLockedFlag = false;
+                            }
+                        }else {
+                            unconfirmedPin = userEntered;
+                            activateResetButton(true);
+                            titleView.setText(R.string.confirm_pin);
+                            Toast.makeText(getActivity(), R.string.confirm_pin, Toast.LENGTH_LONG).show();
+                            clearBoxes();
+                            keyPadLockedFlag = false;
+                        }
                     }
-                } else {
-                    //Roll over
-                    emptyPinBoxes();
-                    statusView.setText("");
-                    userEntered = userEntered + pressedButton.getText().toString().substring(0, 1);
-                    //Update pin boxes
-                    pinBoxArray[userEntered.length() - 1].setText("8");
-
-                    if (userEntered.equals("0000")) {
-                        Toast.makeText(getActivity(), R.string.zero_pin, Toast.LENGTH_SHORT).show();
-                        keyPadLockedFlag = false;
-                        return;
-                    }
-                    keyPadLockedFlag = false;
-                    validatePIN(userEntered);
 
                 }
             }
@@ -293,6 +256,18 @@ public class PinEntryFragment extends Fragment {
 
         buttonDeleteBack = (Button) view.findViewById(R.id.buttonDeleteBack);
         buttonDeleteBack.setTypeface(typeface);
+
+
+        buttonReset = (Button) view.findViewById(R.id.buttonReset);
+
+        buttonReset.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                reCreatePinMethod();
+            }
+        });
+        buttonReset.setTypeface(typeface);
+
+        activateResetButton(false);
 
         final int colorOff = 0xff333333;
         final int colorOn = 0xff1a87c6;
@@ -495,24 +470,6 @@ public class PinEntryFragment extends Fragment {
             }
         });
 
-        buttonForgot.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                    case MotionEvent.ACTION_MOVE:
-                        buttonForgot.setBackgroundColor(colorOn);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_CANCEL:
-                        buttonForgot.setBackgroundColor(colorOff);
-                        break;
-                }
-
-                return false;
-            }
-        });
-
         if (ConnectivityStatus.hasConnectivity(getActivity())) {
             ExchangeRates fxRates = new ExchangeRates();
             DownloadFXRatesTask task = new DownloadFXRatesTask(getActivity(), fxRates);
@@ -533,7 +490,11 @@ public class PinEntryFragment extends Fragment {
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface d, int id) {
                                     d.dismiss();
-                                    emptyPinBoxes();
+                                    pinBoxArray[0].setText("");
+                                    pinBoxArray[1].setText("");
+                                    pinBoxArray[2].setText("");
+                                    pinBoxArray[3].setText("");
+                                    userEntered = "";
                                 }
                             });
 
@@ -549,155 +510,66 @@ public class PinEntryFragment extends Fragment {
         }
 
 
-    return view;
+        return view;
     }
 
 
-    public void emptyPinBoxes(){
+    public void activateResetButton(boolean active){
+        if(active) {
+            buttonReset.setVisibility(View.VISIBLE);
+            buttonReset.setClickable(true);
+            buttonReset.setFocusable(true);
+        }else{
+            buttonReset.setVisibility(View.INVISIBLE);
+            buttonReset.setClickable(false);
+            buttonReset.setFocusable(false);
+        }
+    }
+
+    public void reCreatePinMethod(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+        final String message = "Are you sure you want to recreate you pin?";
+
+        builder.setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton(R.string.dialog_continue,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface d, int id) {
+                                d.dismiss();
+                                pinBoxArray[0].setText("");
+                                pinBoxArray[1].setText("");
+                                pinBoxArray[2].setText("");
+                                pinBoxArray[3].setText("");
+                                userEntered = "";
+                                unconfirmedPin = null;
+                                titleView.setText(R.string.create_pin);
+                                activateResetButton(false);
+                            }
+                        }
+                )
+                .setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface d, int id) {
+                        d.dismiss();
+                    }
+                });
+
+
+        builder.create().show();
+
+    }
+
+
+    public void clearBoxes(){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                pinBoxArray[0].setText("");
-                pinBoxArray[1].setText("");
-                pinBoxArray[2].setText("");
-                pinBoxArray[3].setText("");
+                pinBox0.setText("");
+                pinBox1.setText("");
+                pinBox2.setText("");
+                pinBox3.setText("");
                 userEntered = "";
-            }
-        });
-
-    }
-
-
-    public void validatePIN(final String PIN) {
-
-        final WalletApplication application = (WalletApplication) getActivity().getApplication();
-
-        final Handler handler = new Handler();
-
-
-        showOrHideProgress(true);
-
-//        ProgressUtil.getInstance(getActivity()).show();
-
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                final int[] pinTries = {0};
-                String pin_lookup_key = PreferenceManager.getDefaultSharedPreferences(application).getString("pin_kookup_key", null);
-                String encrypted_password = PreferenceManager.getDefaultSharedPreferences(application).getString("encrypted_password", null);
-                JSONObject response = null;
-                String decryptionKey = null;
-                try {
-                    response = ((StartActivity) getActivity()).apiGetValue(pin_lookup_key, PIN);
-                    decryptionKey = (String) response.get("success");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-//                ProgressUtil.getInstance(getActivity()).close();
-                if (decryptionKey != null && !response.has("error")) {
-                    application.setTemporyPIN(PIN);
-                    application.didEncounterFatalPINServerError = false;
-
-                    String password = ((StartActivity) getActivity()).decrypt(encrypted_password, decryptionKey, PIN);
-
-                    application.checkIfWalletHasUpdatedAndFetchTransactions(password, new SuccessCallback() {
-                        @Override
-                        public void onSuccess() {
-                            handler.post(new Runnable() {
-                                public void run() {
-
-                                    TimeOutUtil.getInstance().updatePin();
-
-                                    SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
-                                    edit.putBoolean("verified", true);
-                                    edit.commit();
-
-
-//                                    ProgressUtil.getInstance(getActivity()).close();
-                                    showOrHideProgress(false);
-
-                                    BlockchainUtil.getInstance(getActivity());
-
-                                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                                    String navigateTo = getActivity().getIntent().getStringExtra("navigateTo");
-                                    intent.putExtra("navigateTo", navigateTo);
-                                    intent.putExtra("verified", true);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    if (strUri != null) {
-                                        intent.putExtra("INTENT_URI", strUri);
-                                    }
-                                    startActivity(intent);
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onFail() {
-                            new Handler(getActivity().getMainLooper()).post(new Runnable() {
-                                public void run() {
-                                    Toast.makeText(getActivity(), R.string.toast_wallet_decryption_failed, Toast.LENGTH_LONG).show();
-                                    showOrHideProgress(false);
-//                                    ProgressUtil.getInstance(getActivity()).close();
-                                    emptyPinBoxes();
-                                    keyPadLockedFlag = false;
-                                }
-                            });
-                        }
-                    });
-                } else if (response.has("error")) {
-                    showOrHideProgress(false);
-                    String error = "";
-                    try {
-                        error = response.getString("error");
-                    } catch (JSONException e1) {
-                        e1.printStackTrace();
-                    }
-                    //"code" == 2 means the PIN is incorrect
-                    if (response.has("code")) {
-                        int codeTries = 0;
-                        try {
-                            codeTries = response.getInt("code");
-                        } catch (JSONException e1) {
-                            e1.printStackTrace();
-                        }
-                        System.out.println("codeTries:" + codeTries);
-                        if (codeTries == 1) {
-                            try {
-                                ((StartActivity) getActivity()).clearPrefValues(application);
-                                throw new Exception("Fatal PIN Server Error");
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                emptyPinBoxes();
-                                throwPinException(application);
-                            }
-
-                        } else {
-                            //Restart in "validating" mode
-                            final JSONObject finalResponse = response;
-                            new Handler(getActivity().getMainLooper()).post(new Runnable() {
-                                public void run() {
-                                    try {
-                                        Toast.makeText(getActivity(), finalResponse.getString("error"), Toast.LENGTH_SHORT).show();
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                    emptyPinBoxes();
-                                    keyPadLockedFlag = false;
-                                }
-                            });
-                        }
-                    } else {
-                        try {
-                            throw new Exception("Unknown Error");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            emptyPinBoxes();
-                            keyPadLockedFlag = false;
-                            throwPinException(application);
-                        }
-                    }
-                }
             }
         });
 
@@ -719,29 +591,71 @@ public class PinEntryFragment extends Fragment {
 
     }
 
-    public void throwPinException(WalletApplication application){
-        application.didEncounterFatalPINServerError = true;
-        new Handler(getActivity().getMainLooper()).post(new Runnable() {
+
+    public void savePin(){
+        showOrHideProgress(true);
+        AsyncTask.execute(new Runnable() {
+            @Override
             public void run() {
+                final WalletApplication application = (WalletApplication) getActivity().getApplication();
+                SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
+                // Save PIN
                 try {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                    builder.setCancelable(false);
-                    builder.setMessage(R.string.pin_server_error_description);
-                    builder.setTitle(R.string.pin_server_error);
-                    builder.setPositiveButton(R.string.pin_server_error_enter_password_manually, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.dismiss();
-                            ((StartActivity)getActivity()).requestPassword();
+                    byte[] bytes = new byte[16];
+                    SecureRandom random = new SecureRandom();
+                    random.nextBytes(bytes);
+                    final String key = new String(Hex.encode(bytes), "UTF-8");
+                    random.nextBytes(bytes);
+                    final String value = new String(Hex.encode(bytes), "UTF-8");
+//                    final JSONObject response = ((PinActivity)getActivity()).apiStoreKey(key, value, userInput);
+                    final JSONObject response = ((StartActivity)getActivity()).apiStoreKey(key, value, userInput);
+                    if (response.get("success") != null) {
+
+                        edit.putString("pin_kookup_key", key);
+                        edit.putString("encrypted_password", MyWallet.encrypt(application.getRemoteWallet().getTemporyPassword(), value, PBKDF2Iterations));
+
+                        if (!edit.commit()) {
+                            throw new Exception("Error Saving Preferences");
+                        } else {
+                            TimeOutUtil.getInstance().updatePin();
+                            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showOrHideProgress(true);
+                                    Toast.makeText(getActivity(), "PIN saved", Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(intent);
+                                }
+                            });
+                        }
+
+                    } else {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(application, response.toString(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(getActivity(), "PIN saved", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(getActivity(), MainActivity.class);
+                                String navigateTo = getActivity().getIntent().getStringExtra("navigateTo");
+                                intent.putExtra("navigateTo", navigateTo);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            }
+                        });
+                    }
+                } catch (final Exception e) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(application, e.toString(), Toast.LENGTH_LONG).show();
                         }
                     });
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
             }
-        });
+        }
+       );
     }
+
 }

@@ -15,8 +15,6 @@
  */
 package piuk.blockchain.android;
 
-import piuk.blockchain.android.R;
-import piuk.blockchain.android.ui.WalletActivity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -112,7 +110,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 				context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification notification = new Notification(icon, message, when);
 		String title = context.getString(R.string.app_name);
-		Intent notificationIntent = new Intent(context, info.blockchain.wallet.ui.PinEntryActivity.class);
+		Intent notificationIntent = new Intent(context, info.blockchain.wallet.ui.PinActivity.class);
 		// set intent so it does not start a new activity
 		notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		PendingIntent intent = PendingIntent.getActivity(context, 0, notificationIntent, 0);

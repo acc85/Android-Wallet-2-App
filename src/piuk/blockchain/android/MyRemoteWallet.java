@@ -45,6 +45,7 @@ import org.spongycastle.util.encoders.Hex;
 import info.blockchain.wallet.ui.Models.WalletObject;
 import piuk.blockchain.android.util.WalletUtils;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.util.Pair;
 //import android.util.Log;
 
@@ -235,7 +236,7 @@ public class MyRemoteWallet extends MyWallet {
 	}
 
 
-	public List<WalletObject> getWalletAddressesAndBalanceAndWatchType() throws JSONException {
+	public List<WalletObject> getWalletAddressesAndBalanceAndWatchType(Context context) throws JSONException {
 		List<WalletObject> list = new ArrayList<WalletObject>();
 		String walletAddress = "";
 
@@ -282,7 +283,7 @@ public class MyRemoteWallet extends MyWallet {
 							walletObject.setWalletAmount(walletAmount);
 							setSentAndReceivedValuesForWallet(walletObject);
 							walletObject.setWalletLabelMap(getLabelMap());
-							walletObject.setMyTransactions(getTransactions());
+							walletObject.setMyTransactions(getTransactions(),context);
 							list.add(walletObject);
 						}
 					}

@@ -171,7 +171,7 @@ public class WebsocketService extends android.app.Service
 		final Notification notification = new Notification(R.drawable.stat_notify_received, tickerMsg, System.currentTimeMillis());
 		Intent notificationIntent = null;
 		if(TimeOutUtil.getInstance().isTimedOut()){
-			notificationIntent = new Intent(WebsocketService.this, info.blockchain.wallet.ui.PinEntryActivity.class);
+			notificationIntent = new Intent(WebsocketService.this, info.blockchain.wallet.ui.PinActivity.class);
 		}
 		else{
 			notificationIntent = new Intent(WebsocketService.this, info.blockchain.wallet.ui.MainActivity.class);
@@ -245,7 +245,7 @@ public class WebsocketService extends android.app.Service
 		final Notification notification = new Notification(R.drawable.stat_notify_received, tickerMsg, System.currentTimeMillis());
 		Intent notificationIntent = null;
 		if(TimeOutUtil.getInstance().isTimedOut()){
-			notificationIntent = new Intent(WebsocketService.this, info.blockchain.wallet.ui.PinEntryActivity.class);
+			notificationIntent = new Intent(WebsocketService.this, info.blockchain.wallet.ui.PinActivity.class);
 		}
 		else{
 			notificationIntent = new Intent(WebsocketService.this, info.blockchain.wallet.ui.MainActivity.class);

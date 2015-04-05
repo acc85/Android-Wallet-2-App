@@ -1,4 +1,4 @@
-package info.blockchain.wallet.ui;
+package info.blockchain.wallet.ui.Fragments;
 
 import info.blockchain.api.ExchangeRates;
 
@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Map;
 import info.blockchain.wallet.ui.Adapters.TransactionAdapter;
 import info.blockchain.wallet.ui.Adapters.TransactionExpandableAdapter;
+import info.blockchain.wallet.ui.DownloadFXRatesTask;
+import info.blockchain.wallet.ui.MainActivity;
 import info.blockchain.wallet.ui.Models.TransactionObject;
 import info.blockchain.wallet.ui.Models.WalletObject;
+import info.blockchain.wallet.ui.TxActivity;
+import info.blockchain.wallet.ui.TxBitmap;
 import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
 import info.blockchain.wallet.ui.Utilities.TimeOutUtil;
 import info.blockchain.wallet.ui.Utilities.TxNotifUtil;
@@ -151,7 +155,7 @@ public class BalanceFragment extends Fragment   {
 		}
 
 		try{
-			setTranactionList();
+			setTransactionList();
 		}catch (Exception e){
 			e.printStackTrace();
 		}
@@ -230,7 +234,7 @@ public class BalanceFragment extends Fragment   {
 				Editor edit = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
 				edit.putBoolean("defaultTxView", false);
 				edit.commit();
-				setTranactionList();
+				setTransactionList();
 				return false;
             }
         });
@@ -318,12 +322,13 @@ public class BalanceFragment extends Fragment   {
         return rootView;
     }
 
-	public void setTranactionList(){
+	public synchronized void setTransactionList(){
 		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					final List<MyTransaction> transactionsList = remoteWallet.getTransactions();
+					final List<MyTransaction> transactionsList = new ArrayList<MyTransaction>();
+					transactionsList.addAll(remoteWallet.getTransactions());
 					labels = remoteWallet.getLabelMap();
 					transactionAdapter.setMyTransactions(transactionsList);
 					transactionAdapter.setIsBTC(isBTC);
@@ -343,6 +348,8 @@ public class BalanceFragment extends Fragment   {
 
 	}
 
+
+
 	public void setExandableList(){
 		AsyncTask.execute(new Runnable() {
 			@Override
@@ -352,7 +359,7 @@ public class BalanceFragment extends Fragment   {
 					for(WalletObject walletObject: wallets){
 						transactionObjects.addAll(walletObject.getWalletTransactions());
 					}
-					wallets = remoteWallet.getWalletAddressesAndBalanceAndWatchType();
+					wallets = remoteWallet.getWalletAddressesAndBalanceAndWatchType(getActivity());
 					transactionExpandableAdapter.setIsBTC(isBTC);
 					transactionExpandableAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
 					transactionExpandableAdapter.setStrCurrentFiatSymbol(BlockchainUtil.getInstance(getActivity()).getFiatSymbol());
@@ -399,7 +406,9 @@ public class BalanceFragment extends Fragment   {
 	}
 
 	public void setRefreshView(boolean  bool) throws Exception{
-		if(bool)
+		if(layoutProgressContainer == null)
+			layoutProgressContainer = getView().findViewById(R.id.layoutProgressContainer);
+		if (bool)
 			layoutProgressContainer.setVisibility(View.VISIBLE);
 		else
 			layoutProgressContainer.setVisibility(View.GONE);

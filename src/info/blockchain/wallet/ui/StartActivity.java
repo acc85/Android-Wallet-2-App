@@ -28,6 +28,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.SecureRandom;
 
+import info.blockchain.wallet.ui.Fragments.PinCreateFragment;
+import info.blockchain.wallet.ui.Fragments.PinEntryFragment;
+import info.blockchain.wallet.ui.Fragments.SetupFragment;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.MyWallet;
 import piuk.blockchain.android.R;

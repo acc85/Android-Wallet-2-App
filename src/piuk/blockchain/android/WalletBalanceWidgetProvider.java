@@ -20,7 +20,7 @@ package piuk.blockchain.android;
 import info.blockchain.wallet.ui.Utilities.BlockchainUtil;
 import info.blockchain.wallet.ui.MainActivity;
 import info.blockchain.wallet.ui.ObjectSuccessCallback;
-import info.blockchain.wallet.ui.PinEntryActivity;
+import info.blockchain.wallet.ui.PinActivity;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -145,7 +145,7 @@ public class WalletBalanceWidgetProvider extends AppWidgetProvider {
 				if (application.isGeoEnabled()) {
 					navigateIntent = new Intent(context, info.blockchain.merchant.directory.MapActivity.class);					
 				} else {
-					navigateIntent = new Intent(context, PinEntryActivity.class);					
+					navigateIntent = new Intent(context, PinActivity.class);
 				}
 			}
 			
@@ -163,7 +163,7 @@ public class WalletBalanceWidgetProvider extends AppWidgetProvider {
 				if (isPassPinScreen) {
 					navigateIntent = new Intent(context, MainActivity.class);
 				} else {
-					navigateIntent = new Intent(context, PinEntryActivity.class);
+					navigateIntent = new Intent(context, PinActivity.class);
 				}
 				
 	            navigateIntent.putExtra("navigateTo", "scanReceiving");            
@@ -178,7 +178,7 @@ public class WalletBalanceWidgetProvider extends AppWidgetProvider {
 			if (isPassPinScreen) {
 				navigateIntent = new Intent(context, MainActivity.class);
 			} else {
-				navigateIntent = new Intent(context, PinEntryActivity.class);
+				navigateIntent = new Intent(context, PinActivity.class);
 			}
 			
             remoteViews.setOnClickPendingIntent(R.id.widget_frame,

@@ -1,5 +1,7 @@
 package info.blockchain.wallet.ui.Models;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
@@ -119,7 +121,7 @@ public class WalletObject {
         return myTransactions;
     }
 
-    public void setMyTransactions(List<MyTransaction> myTransactions) {
+    public void setMyTransactions(List<MyTransaction> myTransactions, Context context) {
         if(myTransactions.size() > 1) {
             this.myTransactions.clear();
         }
@@ -272,10 +274,10 @@ public class WalletObject {
 
             if(addressValueEntryList.size() > 0){
                 TransactionObject transactionObject = new TransactionObject(transaction);
-                transactionObject.setType(isSending?TransactionObject.OUTPUT:TransactionObject.INPUT);
+                transactionObject.setType(isSending ? TransactionObject.OUTPUT : TransactionObject.INPUT);
                 transactionObject.setAddressValueEntryList(addressValueEntryList);
                 transactionObject.setTransactionValue(result);
-                transactionObject.setDate(DateUtil.dateFormatted(transaction.getTime().getTime() / 1000));
+                transactionObject.setDate(DateUtil.getInstance(context).dateFormatted(transaction.getTime().getTime() / 1000));
                 walletTransactions.add(transactionObject);
             }
 

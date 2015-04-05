@@ -9,6 +9,8 @@ import android.view.Window;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
 
+import info.blockchain.wallet.ui.Fragments.PinConfirmNewWalletFragment;
+import info.blockchain.wallet.ui.Fragments.PinCreateNewWalletFragment;
 import info.blockchain.wallet.ui.Utilities.DeviceUtil;
 import info.blockchain.wallet.ui.Utilities.TypefaceUtil;
 import piuk.blockchain.android.R;
