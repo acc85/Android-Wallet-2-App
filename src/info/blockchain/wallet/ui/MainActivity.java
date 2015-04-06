@@ -198,9 +198,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 						else
 							menu.findItem(R.id.main_refresh).setVisible(true);
 						try {
-							((BalanceFragment)mAdapter.getFragment(1)).setRefreshView(refreshing);
+							((BalanceFragment)mAdapter.getItem(1)).setRefreshView(refreshing);
 						} catch (Exception e) {
 							e.printStackTrace();
+
 						}
 						break;
 					case 2:
@@ -220,7 +221,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 			@Override
 			public void onPageSelected(int position) {
 				if(position == 1){
-					((BalanceFragment)mAdapter.getFragment(1)).updateLists();
+					((BalanceFragment)mAdapter.getItem(1)).updateLists();
 				}
 				invalidateOptionsMenu();
 			}

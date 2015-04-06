@@ -351,6 +351,8 @@ public class BalanceFragment extends Fragment   {
 
 
 	public void setExandableList(){
+		tViewAmount1.setText(BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
+		tViewAmount2.setText(strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance())));
 		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {

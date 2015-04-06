@@ -31,11 +31,11 @@ import piuk.blockchain.android.WalletApplication.AddAddressCallback;
 import piuk.blockchain.android.Constants;
 import piuk.blockchain.android.R;
 import piuk.blockchain.android.WalletApplication;
-//import piuk.blockchain.android.service.BlockchainServiceImpl;
 import piuk.blockchain.android.SuccessCallback;
 import piuk.blockchain.android.ui.dialogs.RequestPasswordDialog;
 import piuk.blockchain.android.util.WalletUtils;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -48,8 +48,10 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -70,6 +72,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnFocusChangeListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -96,7 +102,6 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.content.BroadcastReceiver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.ContextThemeWrapper;
-//import android.util.Log;
 
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
@@ -195,6 +200,7 @@ public class SendFragment extends Fragment {
 
     private boolean isBTC = true;
 
+
     private List<HashMap<String, String>> magicData = null;
     private List<HashMap<String, String>> filteredDisplayList = null;
     private MagicAdapter adapter = null;
@@ -227,6 +233,7 @@ public class SendFragment extends Fragment {
 
     private Pattern emailPattern = Patterns.EMAIL_ADDRESS;
     private Pattern phonePattern = Pattern.compile("(\\+[1-9]{1}[0-9]{1,2}+|00[1-9]{1}[0-9]{1,2}+)[\\(\\)\\.\\-\\s\\d]{6,16}");
+
 
     protected BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -500,7 +507,7 @@ public class SendFragment extends Fragment {
                         try {
                             String numberFormated = emailOrNumber.replaceAll("[^\\d]", "");
                             numberFormated = "+" + numberFormated;
-                            remoteWallet.sendCoinsSMS(numberFormated, getBTCEnteredOutputValue(edAmount1.getText().toString()),FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
+                            remoteWallet.sendCoinsSMS(numberFormated, getBTCEnteredOutputValue(edAmount1.getText().toString()), FeePolicy.FeeForce, biBaseFee, progressEmailSMS);
 
                             sendViaEmail = false;
                             sendViaSMS = false;
@@ -709,7 +716,6 @@ public class SendFragment extends Fragment {
         });
 
 
-
         sendMode = (Switch) rootView.findViewById(R.id.mode);
         sendMode.setChecked(false);
         sendMode.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -770,7 +776,7 @@ public class SendFragment extends Fragment {
         magic_qr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(TimeOutUtil.getInstance().isTimedOut()) {
+                if (TimeOutUtil.getInstance().isTimedOut()) {
                     Intent intent = new Intent(getActivity(), StartActivity.class);
                     String navigateTo = getActivity().getIntent().getStringExtra("navigateTo");
                     intent.putExtra("navigateTo", navigateTo);
@@ -786,26 +792,6 @@ public class SendFragment extends Fragment {
                 magic_qr.setBackgroundColor(colorOff);
             }
         });
-
-
-//        magic_qr.setOnTouchListener(new OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//
-//
-//                switch (event.getAction()) {
-//                    case MotionEvent.ACTION_DOWN:
-//                    case MotionEvent.ACTION_MOVE:
-//
-//                    case MotionEvent.ACTION_UP:
-//                    case MotionEvent.ACTION_CANCEL:
-//                        magic_qr.setBackgroundColor(colorOff);
-//                        break;
-//                }
-//
-//                return false;
-//            }
-//        });
 
         magic_keyboard = (LinearLayout) magic.findViewById(R.id.magic2_keyboard);
         magic_keyboard.setBackgroundColor(colorOff);
@@ -848,14 +834,32 @@ public class SendFragment extends Fragment {
 
         mListener.onComplete();
 
+
+        final Point point = new Point();
+        getActivity().getWindowManager().getDefaultDisplay().getSize(point);
+//        rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+//            @Override
+//            public void onGlobalLayout() {
+//                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+//                    rootView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+//                else
+//                    rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+//
+//
+//
+//
+//            }
+//        });
+
+
         return rootView;
     }
 
-    public void setSendProgressVisiblity(boolean isVisible){
-        if(isVisible){
+    public void setSendProgressVisiblity(boolean isVisible) {
+        if (isVisible) {
             sendProgress.setVisibility(View.VISIBLE);
             btSend.setVisibility(View.INVISIBLE);
-        }else{
+        } else {
             sendProgress.setVisibility(View.INVISIBLE);
             btSend.setVisibility(View.VISIBLE);
         }
@@ -875,6 +879,7 @@ public class SendFragment extends Fragment {
                     }
 //                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
                     setSendProgressVisiblity(false);
+
                     Intent intent = getActivity().getIntent();
                     intent.putExtra("tx", tx.getHash());
                     getActivity().setResult(Activity.RESULT_OK, intent);
@@ -1051,7 +1056,7 @@ public class SendFragment extends Fragment {
         public void onSend(final Transaction tx, final String message) {
 
 					/*
-					 *
+                     *
 					 *
 						add addresses to AddressBook here
 					 *
@@ -1281,7 +1286,6 @@ public class SendFragment extends Fragment {
         }
 
     }
-
 
 
     public BigInteger getBTCEnteredOutputValue(String edAmount) {
