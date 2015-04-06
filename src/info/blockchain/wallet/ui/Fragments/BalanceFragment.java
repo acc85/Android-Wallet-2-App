@@ -85,6 +85,9 @@ public class BalanceFragment extends Fragment   {
 	private ImageView ivTx = null;
 	private TextView tListViewTitle = null;
 	private Map<String,String> labels;
+	private boolean updateBalance;
+	private boolean updateExpandable;
+	private boolean updateTransaction;
 
     protected BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -147,17 +150,27 @@ public class BalanceFragment extends Fragment   {
 		}
 	};
 
-	public void updateLists(){
-		try{
-			setExandableList();
-		}catch (Exception e){
-			e.printStackTrace();
+	public void updateLists() {
+		if (!updateBalance){
+			try {
+				setBalanceAmountTextViews();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-
-		try{
-			setTransactionList();
-		}catch (Exception e){
-			e.printStackTrace();
+		if(!updateExpandable) {
+			try {
+				setExandableList();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if(!updateTransaction) {
+			try {
+				setTransactionList();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -233,7 +246,7 @@ public class BalanceFragment extends Fragment   {
 				balanceExpandView.setVisibility(View.INVISIBLE);
 				Editor edit = PreferenceManager.getDefaultSharedPreferences(getActivity()).edit();
 				edit.putBoolean("defaultTxView", false);
-				edit.commit();
+				edit.apply();
 				setTransactionList();
 				return false;
             }
@@ -254,12 +267,24 @@ public class BalanceFragment extends Fragment   {
         tViewAmount2 = (TextView)rootView.findViewById(R.id.amount2);
 		remoteWallet = WalletUtil.getInstance(getActivity()).getRemoteWallet();
 		if(remoteWallet != null) {
-	        tViewAmount1.setText(BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
-	        tViewAmount2.setText(strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance())));
+			setBalanceAmountTextViews();
+//	        tViewAmount1.setText(BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
+//	        tViewAmount2.setText(strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance())));
 		}
 		else {
 	        tViewAmount1.setText("0");
-	        tViewAmount2.setText(strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat("0"));
+			AsyncTask.execute(new Runnable() {
+				@Override
+				public void run() {
+					final String amount  = strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat("0");
+					new Handler(Looper.getMainLooper()).post(new Runnable() {
+						@Override
+						public void run() {
+							tViewAmount2.setText(amount);
+						}
+					});
+				}
+			});
 		}
 
 
@@ -323,6 +348,7 @@ public class BalanceFragment extends Fragment   {
     }
 
 	public synchronized void setTransactionList(){
+		updateTransaction = true;
 		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -338,6 +364,7 @@ public class BalanceFragment extends Fragment   {
 						@Override
 						public void run() {
 							transactionAdapter.notifyDataSetChanged();
+							updateTransaction = false;
 						}
 					});
 				}catch(Exception e){
@@ -349,10 +376,33 @@ public class BalanceFragment extends Fragment   {
 	}
 
 
+	public void setBalanceAmountTextViews(){
+		updateBalance = true;
+		AsyncTask.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					final String amount1 = BlockchainUtil.formatBitcoin(remoteWallet.getBalance());
+					final String amount2 = strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
+					new Handler(Looper.getMainLooper()).post(new Runnable() {
+						@Override
+						public void run() {
+							tViewAmount1.setText(amount1);
+							tViewAmount2.setText(amount2);
+							updateBalance = false;
+						}
+					});
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
 
 	public void setExandableList(){
-		tViewAmount1.setText(BlockchainUtil.formatBitcoin(remoteWallet.getBalance()));
-		tViewAmount2.setText(strCurrentFiatSymbol + BlockchainUtil.BTC2Fiat(BlockchainUtil.formatBitcoin(remoteWallet.getBalance())));
+		updateExpandable = true;
+		setBalanceAmountTextViews();
 		AsyncTask.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -398,6 +448,7 @@ public class BalanceFragment extends Fragment   {
 						@Override
 						public void run() {
 							transactionExpandableAdapter.notifyDataSetChanged();
+							updateExpandable = false;
 						}
 					});
 				}catch(Exception e){
@@ -409,7 +460,7 @@ public class BalanceFragment extends Fragment   {
 
 	public void setRefreshView(boolean  bool) throws Exception{
 		if(layoutProgressContainer == null)
-			layoutProgressContainer = getView().findViewById(R.id.layoutProgressContainer);
+			layoutProgressContainer = ((MainActivity)getActivity()).getLayoutProgressContainer();
 		if (bool)
 			layoutProgressContainer.setVisibility(View.VISIBLE);
 		else

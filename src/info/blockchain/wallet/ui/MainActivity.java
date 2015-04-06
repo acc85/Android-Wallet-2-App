@@ -198,6 +198,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 						else
 							menu.findItem(R.id.main_refresh).setVisible(true);
 						try {
+							findViewById(R.id.layoutProgressContainer);
 							((BalanceFragment)mAdapter.getItem(1)).setRefreshView(refreshing);
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -210,6 +211,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
 				}
 		return super.onPrepareOptionsMenu(menu);
+	}
+
+	public View getLayoutProgressContainer(){
+		return findViewById(R.id.layoutProgressContainer);
 	}
 
 	public void setListeners(){

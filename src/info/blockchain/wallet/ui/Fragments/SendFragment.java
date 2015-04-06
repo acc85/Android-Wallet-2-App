@@ -263,8 +263,9 @@ public class SendFragment extends Fragment {
         @Override
         public void onCoinsSent(final Transaction tx, final long result) {
 //			btSend.setVisibility(View.GONE);
-            btSend.setBackgroundColor(0xff808080);
-            btSend.setClickable(false);
+            setSendProgressVisiblity(false);
+//            btSend.setBackgroundColor(0xff808080);
+//            btSend.setClickable(false);
             summary3.setVisibility(View.VISIBLE);
             tvSentPrompt.setVisibility(View.VISIBLE);
 
@@ -870,15 +871,13 @@ public class SendFragment extends Fragment {
     final SendProgress progress = new SendProgress() {
 
         public void onSend(final Transaction tx, final String message) {
+            application.getRemoteWallet().setState(MyRemoteWallet.State.SENT);
             handler.post(new Runnable() {
                 public void run() {
-                    application.getRemoteWallet().setState(MyRemoteWallet.State.SENT);
-
                     if (sendingProgressDialog != null) {
                         sendingProgressDialog.dismiss();
                     }
 //                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    setSendProgressVisiblity(false);
 
                     Intent intent = getActivity().getIntent();
                     intent.putExtra("tx", tx.getHash());

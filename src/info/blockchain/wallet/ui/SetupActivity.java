@@ -38,7 +38,7 @@ public class SetupActivity extends Activity		{
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SetupActivity.this);
 		Editor edit = prefs.edit();
 		edit.putBoolean("virgin", true);
-		edit.commit();
+		edit.apply();
 
         Button imgCreate = ((Button)findViewById(R.id.create));
         imgCreate.setTypeface(TypefaceUtil.getInstance(this).getGravityBoldTypeface());
