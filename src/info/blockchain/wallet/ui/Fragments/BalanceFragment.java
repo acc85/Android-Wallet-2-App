@@ -158,14 +158,14 @@ public class BalanceFragment extends Fragment   {
 				e.printStackTrace();
 			}
 		}
-		if(!updateExpandable) {
+		if(balanceExpandView.getVisibility() == View.VISIBLE) {
 			try {
 				setExandableList();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		if(!updateTransaction) {
+		else if(transactionListView.getVisibility() == View.VISIBLE) {
 			try {
 				setTransactionList();
 			} catch (Exception e) {
@@ -348,30 +348,32 @@ public class BalanceFragment extends Fragment   {
     }
 
 	public synchronized void setTransactionList(){
-		updateTransaction = true;
-		AsyncTask.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					final List<MyTransaction> transactionsList = new ArrayList<MyTransaction>();
-					transactionsList.addAll(remoteWallet.getTransactions());
-					labels = remoteWallet.getLabelMap();
-					transactionAdapter.setMyTransactions(transactionsList);
-					transactionAdapter.setIsBTC(isBTC);
-					transactionAdapter.setLabelMap(labels);
-					transactionAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
-					new Handler(Looper.getMainLooper()).post(new Runnable() {
-						@Override
-						public void run() {
-							transactionAdapter.notifyDataSetChanged();
-							updateTransaction = false;
-						}
-					});
-				}catch(Exception e){
-					e.printStackTrace();
+		if(!updateTransaction) {
+			updateTransaction = true;
+			AsyncTask.execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						final List<MyTransaction> transactionsList = new ArrayList<MyTransaction>();
+						transactionsList.addAll(remoteWallet.getTransactions());
+						labels = remoteWallet.getLabelMap();
+						transactionAdapter.setMyTransactions(transactionsList);
+						transactionAdapter.setIsBTC(isBTC);
+						transactionAdapter.setLabelMap(labels);
+						transactionAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
+						new Handler(Looper.getMainLooper()).post(new Runnable() {
+							@Override
+							public void run() {
+								transactionAdapter.notifyDataSetChanged();
+								updateTransaction = false;
+							}
+						});
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			}
-		});
+			});
+		}
 
 	}
 
@@ -401,61 +403,62 @@ public class BalanceFragment extends Fragment   {
 
 
 	public void setExandableList(){
-		updateExpandable = true;
-		setBalanceAmountTextViews();
-		AsyncTask.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					List<Object> transactionObjects = new ArrayList<>();
-					for(WalletObject walletObject: wallets){
-						transactionObjects.addAll(walletObject.getWalletTransactions());
-					}
-					wallets = remoteWallet.getWalletAddressesAndBalanceAndWatchType(getActivity());
-					transactionExpandableAdapter.setIsBTC(isBTC);
-					transactionExpandableAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
-					transactionExpandableAdapter.setStrCurrentFiatSymbol(BlockchainUtil.getInstance(getActivity()).getFiatSymbol());
-					transactionExpandableAdapter.setWallets(wallets);
-					for (WalletObject wallet : wallets) {
-						for (Object object : wallet.getWalletTransactions()) {
-							TransactionObject transactionObject = null;
-							if(object instanceof TransactionObject) {
-								transactionObject = (TransactionObject) object;
-								TxBitmap txBitmap = new TxBitmap(getActivity(), transactionObject.getAddressValueEntryList());
-								Bitmap transActionBitmap = txBitmap.createArrowsBitmap(200, TxBitmap.SENDING, transactionObject.getAddressValueEntryList().size());
-								if (transactionObject.getType() == TransactionObject.INPUT) {
-									txBitmap = new TxBitmap(getActivity(), transactionObject.getAddressValueEntryList().subList(0, 1));
-									transActionBitmap = txBitmap.createArrowsBitmap(200, TxBitmap.RECEIVING, 1);
+		if(!updateExpandable) {
+			updateExpandable = true;
+			AsyncTask.execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						List<Object> transactionObjects = new ArrayList<>();
+						for (WalletObject walletObject : wallets) {
+							transactionObjects.addAll(walletObject.getWalletTransactions());
+						}
+						wallets = remoteWallet.getWalletAddressesAndBalanceAndWatchType(getActivity());
+						transactionExpandableAdapter.setIsBTC(isBTC);
+						transactionExpandableAdapter.setStrCurrentFiatCode(BlockchainUtil.getInstance(getActivity()).getFiatCode());
+						transactionExpandableAdapter.setStrCurrentFiatSymbol(BlockchainUtil.getInstance(getActivity()).getFiatSymbol());
+						transactionExpandableAdapter.setWallets(wallets);
+						for (WalletObject wallet : wallets) {
+							for (Object object : wallet.getWalletTransactions()) {
+								TransactionObject transactionObject = null;
+								if (object instanceof TransactionObject) {
+									transactionObject = (TransactionObject) object;
+									TxBitmap txBitmap = new TxBitmap(getActivity(), transactionObject.getAddressValueEntryList());
+									Bitmap transActionBitmap = txBitmap.createArrowsBitmap(200, TxBitmap.SENDING, transactionObject.getAddressValueEntryList().size());
+									if (transactionObject.getType() == TransactionObject.INPUT) {
+										txBitmap = new TxBitmap(getActivity(), transactionObject.getAddressValueEntryList().subList(0, 1));
+										transActionBitmap = txBitmap.createArrowsBitmap(200, TxBitmap.RECEIVING, 1);
+									}
+									transactionObject.setTxBitmap(transActionBitmap);
+									transactionObject.setAddressBitmap(txBitmap.createListBitmap(200));
+									((MainActivity) getActivity()).getRecyclingBitmaps().add(transactionObject.getAddressBitmap());
+									((MainActivity) getActivity()).getRecyclingBitmaps().add(transactionObject.getAddressBitmap());
 								}
-								transactionObject.setTxBitmap(transActionBitmap);
-								transactionObject.setAddressBitmap(txBitmap.createListBitmap(200));
-								((MainActivity) getActivity()).getRecyclingBitmaps().add(transactionObject.getAddressBitmap());
-								((MainActivity) getActivity()).getRecyclingBitmaps().add(transactionObject.getAddressBitmap());
 							}
 						}
-					}
-					for(Object object: transactionObjects){
-						TransactionObject transactionObject = null;
-						if(object instanceof TransactionObject) {
-							transactionObject = (TransactionObject) object;
-							transactionObject.recycleBitmaps();
+						for (Object object : transactionObjects) {
+							TransactionObject transactionObject = null;
+							if (object instanceof TransactionObject) {
+								transactionObject = (TransactionObject) object;
+								transactionObject.recycleBitmaps();
+							}
 						}
-					}
-					transactionObjects = null;
-					System.gc();
+						transactionObjects = null;
+						System.gc();
 
-					new Handler(Looper.getMainLooper()).post(new Runnable() {
-						@Override
-						public void run() {
-							transactionExpandableAdapter.notifyDataSetChanged();
-							updateExpandable = false;
-						}
-					});
-				}catch(Exception e){
-					e.printStackTrace();
+						new Handler(Looper.getMainLooper()).post(new Runnable() {
+							@Override
+							public void run() {
+								transactionExpandableAdapter.notifyDataSetChanged();
+								updateExpandable = false;
+							}
+						});
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	public void setRefreshView(boolean  bool) throws Exception{
